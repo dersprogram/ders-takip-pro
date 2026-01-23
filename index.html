@@ -1514,7 +1514,7 @@ html.timefmt-range .tblRow{
 <option value="12px">KÜÇÜK</option>
 <option selected="" value="14px">ORTA</option>
 <option value="16px">BÜYÜK</option>
- <option value="80px">ÇOK BÜYÜK</option>   
+<option value="20px">ÇOK BÜYÜK</option>
 </select>
 </div>
 <button class="btn" id="themeToggle" style="padding: 0.3rem 0.6rem">🌓</button>
@@ -2380,20 +2380,17 @@ const refreshSelects = () => {
 // İstenen: Sadece yazılar büyüsün/küçülsün, dış şerit ve yerleşim sabit kalsın.
 // Bu yüzden zoom/transform KULLANMIYORUZ; font-size'ı rem tabanlı hale getiriyoruz.
 function applyGlobalTextSizetSize(fsPx){
-  // Keep layout fixed; scale ONLY text.
   let px = parseFloat(String(fsPx || "14px").replace(/[^0-9.]/g, ""));
   if(!isFinite(px) || px <= 0) px = 14;
 
-  const base = 14; // baseline
-  const scale = Math.max(0.85, Math.min(1.25, px / base));
+  // px → ölçek dönüşümü (12,14,16,18 uyumlu)
+  let scale = px / 14;   // 14px = 1.0 referans
 
-  // Store raw px for settings UI consistency
-  document.documentElement.style.setProperty('--fs-base', px + 'px');
-  // Actual app-wide text scale (no layout scaling)
-  document.documentElement.style.setProperty('--fsScale', String(scale));
+  // güvenlik sınırı
+  if(scale < 0.85) scale = 0.85;   // 12px ≈ 0.86
+  if(scale > 1.3)  scale = 1.3;    // 18px ≈ 1.29
 
-  // iOS automatic text-size adjustments
-  document.documentElement.style.webkitTextSizeAdjust = '100%';
+  document.documentElement.style.setProperty("--fsScale", scale);
 }
 
 function initSettingsFromStorage(){
