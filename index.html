@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 
 <html lang="tr">
@@ -1502,10 +1503,9 @@ html.timefmt-range .tblRow{
 <div style="display:flex; align-items:center; gap:0.4rem;">
 <span style="font-size:0.7rem; font-weight:900;">YAZI:</span>
 <select class="input" id="fsSelect" style="padding:0.1rem 0.3rem">
-<option value="12px">KÜÇÜK</option>
-<option selected="" value="14px">ORTA</option>
-<option value="16px">BÜYÜK</option>
-<option value="20px">ÇOK BÜYÜK</option>
+  <option value="12px">KÜÇÜK</option>
+  <option value="14px" selected>ORTA</option>
+  <option value="16px">BÜYÜK</option>
 </select>
 </div>
 <button class="btn" id="themeToggle" style="padding: 0.3rem 0.6rem">🌓</button>
@@ -2374,12 +2374,12 @@ function applyGlobalTextSizetSize(fsPx){
   let px = parseFloat(String(fsPx || "14px").replace(/[^0-9.]/g, ""));
   if(!isFinite(px) || px <= 0) px = 14;
 
-  // px → ölçek dönüşümü (12,14,16,18 uyumlu)
-  let scale = px / 14;   // 14px = 1.0 referans
+  // 14px = referans
+  let scale = px / 14;
 
-  // güvenlik sınırı
-  if(scale < 0.85) scale = 0.85;   // 12px ≈ 0.86
-  if(scale > 1.3)  scale = 1.3;    // 18px ≈ 1.29
+  // sadece 12–16 arası güvenli sınır (APK + Web için)
+  if(scale < 12/14) scale = 12/14;  // ≈12px
+  if(scale > 16/14) scale = 16/14;  // ≈16px
 
   document.documentElement.style.setProperty("--fsScale", scale);
 }
@@ -2388,13 +2388,22 @@ function initSettingsFromStorage(){
   // tema + font boyutu
 
   let fs = localStorage.getItem("dt_fs_base");
-  if(!fs) fs = "14px";
-  try{ if(fs && fs.trim().startsWith("\"")) fs = JSON.parse(fs); }catch(e){}
-  document.documentElement.style.setProperty("--fs-base", fs);
-  const fsSel = document.getElementById("fsSelect");
-  if(fsSel) fsSel.value = fs;
-  // tüm sayfalara uygula
-  applyGlobalTextSizetSize(fs);
+if(!fs) fs = "14px";
+try{ if(fs && fs.trim().startsWith("\"")) fs = JSON.parse(fs); }catch(e){}
+
+// Eski kayıtlardan (18px/20px vb.) gelen değerleri güvenli aralığa yuvarla (12/14/16)
+const fsp = parseFloat(String(fs).replace(/[^0-9.]/g, "")) || 14;
+if(fsp <= 12) fs = "12px";
+else if(fsp >= 16) fs = "16px";
+else fs = "14px";
+
+localStorage.setItem("dt_fs_base", fs);
+document.documentElement.style.setProperty("--fs-base", fs);
+const fsSel = document.getElementById("fsSelect");
+if(fsSel) fsSel.value = fs;
+
+// tüm sayfalara uygula
+applyGlobalTextSizetSize(fs);
 
   // aktif günleri UI'ya yansıt
   const savedDays = loadJSON(LS_ACTIVE_DAYS_KEY, [...ALL_DAYS]);
@@ -3508,6 +3517,9 @@ btnWeekly.addEventListener("click", showWeekly);
   --weeklyLine: rgba(255,255,255,0.16);
   --weeklyLineStrong: rgba(255,255,255,0.34);
 }
+:root{
+  --fsScale: 1;
+}
 #weeklyView, .weeklyWrap{
   background: radial-gradient(1200px 600px at 30% 0%, rgba(255,122,0,0.10), transparent 55%),
               linear-gradient(180deg, var(--weeklyBg0), var(--weeklyBg1));
@@ -3863,13 +3875,6 @@ btnWeekly.addEventListener("click", showWeekly);
 .noteDotBtn:focus{ outline: none; }
 .noteDotBtn:active{ transform: translateY(-50%) scale(0.96); }
 </style>
-
-<script>
-/* TIMEFMT_BOOT */
-document.addEventListener("DOMContentLoaded", function(){
-  try{ applyTimeFmtClass(); }catch(_{}){}
-});
-</script>
 
 </body>
 </html>
