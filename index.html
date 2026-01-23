@@ -1389,24 +1389,15 @@ html{ font-size: 14px !important; }
 
 
 <style>
-/* TIMEFMT_TBLTIME_OVERRIDES */
-/* Varsayılan .tblTime dosyada range gibi küçük tanımlı. Tek giriş seçilince büyütüyoruz. */
-html.timefmt-start .tblTime{
-  font-family: inherit !important;
-  font-variant-numeric: normal !important;
-  letter-spacing: 0 !important;
-  font-weight: 800 !important;
-  font-size: 1rem !important;          /* ders ismiyle aynı */
-  color: rgba(255,255,255,.78) !important;
-}
-/* Range seçilince dosyadaki mevcut küçük/monospace görünüm zaten uygun; yine de garanti edelim */
+/* TIMEFMT_TBLTIME_OVERRIDES — sıkı, ince ve net saat */
+html.timefmt-start .tblTime,
 html.timefmt-range .tblTime{
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
-  font-variant-numeric: tabular-nums !important;
-  letter-spacing: .06em !important;
-  font-weight: 700 !important;
-  font-size: .65rem !important;        /* 2 kademe küçük */
-  color: rgba(210,225,245,.55) !important;
+  font-family: inherit !important;
+  font-variant-numeric: tabular-nums !important; /* rakamlar hizalı */
+  letter-spacing: -0.02em !important;             /* ✅ biraz sıkı */
+  font-weight: 500 !important;                    /* ince ama net */
+  font-size: 1rem !important;                     /* boyut aynı */
+  color: rgba(235,240,255,.85) !important;        /* netlik */
 }
 </style>
 
