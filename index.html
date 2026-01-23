@@ -2489,29 +2489,12 @@ function getLessonTimeForHeader(no){
   return "";
 }
 
-
-// ===== Orientation helpers (Android/WebView uyumlu; destek yoksa sessizce geçer) =====
-async function tryLockOrientation(mode){
-  try{
-    if(window.screen && screen.orientation && typeof screen.orientation.lock === "function"){
-      await screen.orientation.lock(mode);
-    }
-  }catch(e){}
-}
-function requestPortrait(){ tryLockOrientation("portrait"); }
-function requestLandscape(){ tryLockOrientation("landscape"); }
-// Varsayılan: uygulama dikey (haftalık hariç)
-requestPortrait();
-
 function showWeekly(){
   document.body.classList.add("weekly-open");
   document.body.classList.remove("settings-open");
   window.scrollTo({top:0, behavior:"auto"});
 
-  
-  requestLandscape();
-  try{ if(location.hash !== "#weekly") history.pushState({view:"weekly"}, "", "#weekly"); }catch(e){}
-homeView.style.display = "none";
+  homeView.style.display = "none";
   settingsView.style.display = "none";
   if(weeklyView){
     weeklyView.style.display = "block";
@@ -2533,12 +2516,9 @@ homeView.style.display = "none";
   renderWeeklyTable();
 }
 
-function hideWeeklyToHome(fromHistory){
-  if(fromHistory === undefined) fromHistory = false;
-
+function hideWeeklyToHome(){
   document.body.classList.remove("weekly-open");
-    requestPortrait();
-if(weeklyView){
+  if(weeklyView){
     weeklyView.style.display = "none";
     weeklyView.setAttribute("aria-hidden","true");
   }
@@ -2550,18 +2530,7 @@ if(weeklyView){
   renderDays();
 }
 
-if(weeklyCloseBtn) weeklyCloseBtn.onclick = () => {
-  // Kapat: önce geri geçmişe dön (Android geri tuşu ile aynı davranış)
-  if(location.hash === "#weekly") { try{ history.back(); return; }catch(e){} }
-  hideWeeklyToHome(false);
-};
-
-// Android geri tuşu / tarayıcı geri: Haftalık açıksa önce haftalığı kapat
-window.addEventListener("popstate", () => {
-  if(document.body.classList.contains("weekly-open")){
-    hideWeeklyToHome(true);
-  }
-});
+if(weeklyCloseBtn) weeklyCloseBtn.onclick = hideWeeklyToHome;
 
 function renderWeeklyTable(){
   const thead = document.getElementById("weeklyThead");
