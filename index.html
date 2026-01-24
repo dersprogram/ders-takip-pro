@@ -1320,16 +1320,6 @@ body.light .notlar-modal .close:hover {
   }
   #weeklyGrid{ min-height: 0; }
 }
-
-
-/* === FIX14: Yatayda tablo altı turuncu şeride değmesin (dikey aynen) === */
-@media (orientation: landscape){
-  /* Haftalık görünümde alt payı artır: tablo turuncu çerçeveye taşmasın */
-  .view.weekly .pad{ padding-bottom: 22px !important; } /* appBorder alt padding ile uyumlu */
-  .weeklyTableWrapper{ box-sizing: border-box; overflow: hidden; }
-}
-
-
 /* === FIX15: Yatayda iç tablo turuncu çerçevenin DIŞINA taşmasın (dikey aynen) === */
 @media (orientation: landscape){
   /* Haftalık katmanı appBorder'ın içinde kalsın */
@@ -1370,17 +1360,6 @@ body.light .notlar-modal .close:hover {
     height: 100% !important;
   }
 }
-
-
-/* === FIX19: Canlı sayfada (tarayıcı çubukları) için yatayda alt taşmayı biraz daha yukarı al === */
-@media (orientation: landscape){
-  .weeklyTableWrapper{
-    max-height: calc(100% - (14px + env(safe-area-inset-bottom, 0px))) !important;
-    padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)) !important;
-  }
-}
-
-
 /* === FIX20: Canlı sayfada alt taşma için daha güçlü içeri alma (3x) === */
 @media (orientation: landscape){
   .weeklyTableWrapper{
