@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 
 <html lang="tr">
@@ -1366,6 +1368,15 @@ body.light .notlar-modal .close:hover {
   }
   .wgrid{
     height: 100% !important;
+  }
+}
+
+
+/* === FIX19: Canlı sayfada (tarayıcı çubukları) için yatayda alt taşmayı biraz daha yukarı al === */
+@media (orientation: landscape){
+  .weeklyTableWrapper{
+    max-height: calc(100% - (14px + env(safe-area-inset-bottom, 0px))) !important;
+    padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
 
