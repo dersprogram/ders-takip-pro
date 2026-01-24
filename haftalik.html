@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Haftalık Program</title>
+    <style>
+        :root {
+            --bg0: #060a12;
+            --orange: #ff7a00;
+            --text: rgba(255, 255, 255, .92);
+            --line: rgba(255, 255, 255, .12);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            height: 100vh; margin: 0; padding: 0; 
+            background: var(--bg0); color: var(--text);
+            font-family: system-ui, -apple-system, sans-serif;
+            overflow: hidden; 
+        }
+
+        /* Dış Çerçeve: Ekrana tam oturur */
+        .appFrame {
+            height: 100vh;
+            padding: env(safe-area-inset-top, 8px) 8px env(safe-area-inset-bottom, 8px) 8px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .appBorder {
+            flex: 1;
+            border: 3px solid var(--orange);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Kapat/Geri Butonu */
+        .backBtn {
+            position: absolute; top: 10px; right: 10px;
+            width: 32px; height: 32px; background: var(--orange);
+            border: none; border-radius: 8px; color: #000;
+            font-weight: 900; cursor: pointer; z-index: 100;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* Tablo Alanı */
+        .weeklyTableWrapper {
+            width: 100%;
+            height: auto; /* Alttan boşluk bırakması için */
+            overflow: hidden;
+        }
+
+        .wgrid {
+            display: grid;
+            width: 100%;
+            /* 9 Sütun (1 Gün + 8 Ders) */
+            grid-template-columns: 1.2fr repeat(8, 1fr);
+        }
+
+        .wcell {
+            border-right: 1px solid var(--line);
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 4px 1px;
+            min-height: 42px;
+        }
+
+        .wcell.wtop { background: rgba(255, 122, 0, 0.1); color: var(--orange); font-weight: 800; border-bottom: 2px solid var(--orange); }
+        .wcell.wleft { background: rgba(255, 255, 255, 0.03); font-weight: 700; border-right: 2px solid var(--orange); }
+
+        /* Yazıların Preslenmesi (Dikey Mod) */
+        .wday { font-size: 10px; font-weight: 900; }
+        .wtitle { font-size: 9px; font-weight: 800; }
+        .wtime { display: none; } /* Dikeyde saatler gizli */
+        .wcls { font-size: 8px; opacity: 0.6; margin-bottom: 1px; }
+        .wles { 
+            font-size: 10px; font-weight: 900; line-height: 1;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+        }
+
+        /* Yatay Mod (Landscape) - Genişleyen Tasarım */
+        @media (orientation: landscape) {
+            .wgrid { grid-template-columns: 85px repeat(8, 1fr); }
+            .wcell { min-height: 50px; }
+            .wtime { display: block; font-size: 10px; opacity: 0.5; margin-top: 2px; }
+            .wtitle::after { content: "ers"; }
+            .wday { font-size: 13px; }
+            .wles { font-size: 13px; }
+            .wcls { font-size: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="appFrame">
+    <div class="appBorder">
+        <button class="backBtn" onclick="window.history.back()">✕</button>
+        <div class="weeklyTableWrapper">
+            <div id="weeklyGrid" class="wgrid"></div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+  /* ======= Ortak LocalStorage Anahtarları (Anasayfa ile aynı) ======= */
+  const ALL_DAYS = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"];
+  const LS_SCHEDULE_KEY      = "dt_schedule_v1";      // { day: [{no,cls,les,time}, ...] }
+  const LS_ACTIVE_DAYS_KEY   = "dt_active_days_v1";   // ["Pazartesi","Çarşamba", ...]
+  const LS_COURSE_COLORS_KEY = "dt_course_colors_v1"; // { "Matematik":"#RRGGBB", ... }
+
+  function loadJSON(key, fallback){
+    try{
+      const raw = localStorage.getItem(key);
+      if(!raw) return fallback;
+      const v = JSON.parse(raw);
+      return (v && typeof v === "object") ? v : fallback;
+    }catch(_){ return fallback; }
+  }
+
+  function loadActiveDays(){
+    let days = loadJSON(LS_ACTIVE_DAYS_KEY, [...ALL_DAYS]);
+    if(!Array.isArray(days) || days.length === 0) days = [...ALL_DAYS];
+    // Güvenlik: sadece ALL_DAYS içinden
+    days = days.filter(d => ALL_DAYS.includes(d));
+    if(days.length === 0) days = [...ALL_DAYS];
+    return days;
+  }
+
+  function loadSchedule(){
+    let sch = loadJSON(LS_SCHEDULE_KEY, {});
+    if(!sch || typeof sch !== "object") sch = {};
+    ALL_DAYS.forEach(d => { if(!Array.isArray(sch[d])) sch[d] = []; });
+    return sch;
+  }
+
+  function loadCourseColors(){
+    const m = loadJSON(LS_COURSE_COLORS_KEY, {});
+    return (m && typeof m === "object") ? m : {};
+  }
+
+  function getCourseColor(courseName){
+    const k = String(courseName || "").trim();
+    if(!k) return "";
+    try{
+      const m = loadCourseColors();
+      return m[k] || "";
+    }catch(_){ return ""; }
+  }
+
+  // Ders adını hücreye sığdırmak için (dikeyde daha agresif)
+  function abbrevCourse(str){
+    const s = String(str||"").trim();
+    if(!s) return "";
+    // Çok uzunsa ilk 10 karaktere kadar kırp
+    if(s.length <= 10) return s;
+    // Kelime baş harfleri: "Din Kültürü" -> "D.K."
+    const parts = s.split(/\s+/).filter(Boolean);
+    if(parts.length >= 2){
+      const ab = parts.slice(0,3).map(w => w[0].toUpperCase()).join(".");
+      return ab + ".";
+    }
+    return s.slice(0,9) + "…";
+  }
+
+  // Schedule içinden (no -> satır) bul
+  function findRowByNo(dayRows, no){
+    if(!Array.isArray(dayRows)) return null;
+    return dayRows.find(r => Number(r?.no) === Number(no)) || null;
+  }
+
+  // Saat başlığını üret: ilk bulunan slot time
+  function slotTimeFromSchedule(schedule, slotNo){
+    for(const d of ALL_DAYS){
+      const row = findRowByNo(schedule[d], slotNo);
+      const t = row?.time;
+      if(t) return String(t);
+    }
+    return "";
+  }
+
+  function renderGrid(){
+    const grid = document.getElementById("weeklyGrid");
+    const isPortrait = window.matchMedia("(orientation: portrait)").matches;
+
+    const ACTIVE_DAYS = loadActiveDays();
+    const SCHEDULE = loadSchedule();
+
+    const LESSON_SLOTS = 8; // Haftalık 8 ders
+    let html = "";
+
+    // Üst Başlık Satırı
+    html += '<div class="wcell wtop wleft"></div>';
+    for(let i=1;i<=LESSON_SLOTS;i++){
+      const title = isPortrait ? `${i}. D` : `${i}. Ders`;
+      const t = isPortrait ? "" : slotTimeFromSchedule(SCHEDULE, i);
+      html += `<div class="wcell wtop">
+                <div class="wtitle">${title}</div>
+                <div class="wtime">${t ? t : ""}</div>
+              </div>`;
+    }
+
+    // Gün Satırları (sadece aktif günler kadar)
+    for(let d=0; d<ACTIVE_DAYS.length; d++){
+      const dayName = ACTIVE_DAYS[d];
+      const displayDay = isPortrait ? dayName.substring(0,3) : dayName;
+      html += `<div class="wcell wleft wday">${displayDay}</div>`;
+
+      for(let slot=1; slot<=LESSON_SLOTS; slot++){
+        const row = findRowByNo(SCHEDULE[dayName], slot);
+        const cls = row?.cls ? String(row.cls) : "";
+        const les = row?.les ? String(row.les) : "";
+        const color = getCourseColor(les);
+
+        const lesText = isPortrait ? abbrevCourse(les) : les;
+        html += `<div class="wcell">
+                  <div class="wcls">${cls}</div>
+                  <div class="wles" style="${color ? `color:${color}` : ""}">${lesText}</div>
+                </div>`;
+      }
+    }
+
+    grid.innerHTML = html;
+
+    // Satır sayısı az ise (ör: 5 gün seçili) yüksekliği doldur
+    // Grid satırlarını dinamik yap: 1 başlık + aktif gün sayısı
+    grid.style.gridTemplateRows = `repeat(${1 + ACTIVE_DAYS.length}, 1fr)`;
+  }
+
+  // İlk yükleme + storage değişimi (başka sekmeden) + ekran değişimi
+  renderGrid();
+  window.addEventListener("resize", renderGrid);
+  window.addEventListener("storage", (e)=>{
+    if([LS_SCHEDULE_KEY, LS_ACTIVE_DAYS_KEY, LS_COURSE_COLORS_KEY].includes(e.key)){
+      renderGrid();
+    }
+  });
+</script>
+
+</body>
+</html>
