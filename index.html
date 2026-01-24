@@ -1806,6 +1806,7 @@ html.timefmt-range .tblRow{
   <option value="12px">KÜÇÜK</option>
   <option value="14px" selected>ORTA</option>
   <option value="16px">BÜYÜK</option>
+  <option value="18px">ÇOK BÜYÜK</option>
 </select>
 </div>
 <button class="btn" id="themeToggle" style="padding: 0.3rem 0.6rem">🌓</button>
@@ -2679,7 +2680,7 @@ function applyGlobalTextSizetSize(fsPx){
 
   // sadece 12–16 arası güvenli sınır (APK + Web için)
   if(scale < 12/14) scale = 12/14;  // ≈12px
-  if(scale > 16/14) scale = 16/14;  // ≈16px
+  if(scale > 18/14) scale = 18/14;  // ≈18px
 
   document.documentElement.style.setProperty("--fsScale", scale);
 }
@@ -2691,9 +2692,10 @@ function initSettingsFromStorage(){
 if(!fs) fs = "14px";
 try{ if(fs && fs.trim().startsWith("\"")) fs = JSON.parse(fs); }catch(e){}
 
-// Eski kayıtlardan (18px/20px vb.) gelen değerleri güvenli aralığa yuvarla (12/14/16)
+// Eski kayıtlardan gelen değerleri güvenli aralığa yuvarla (12 / 14 / 16 / 18)
 const fsp = parseFloat(String(fs).replace(/[^0-9.]/g, "")) || 14;
 if(fsp <= 12) fs = "12px";
+else if(fsp >= 18) fs = "18px";
 else if(fsp >= 16) fs = "16px";
 else fs = "14px";
 
