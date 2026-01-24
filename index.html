@@ -1380,6 +1380,15 @@ body.light .notlar-modal .close:hover {
   }
 }
 
+
+/* === FIX20: Canlı sayfada alt taşma için daha güçlü içeri alma (3x) === */
+@media (orientation: landscape){
+  .weeklyTableWrapper{
+    max-height: calc(100% - (42px + env(safe-area-inset-bottom, 0px))) !important;
+    padding-bottom: calc(42px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
 </style>
 <style>
 /* === PORTRAIT HORIZONTAL SCROLL FIX === */
