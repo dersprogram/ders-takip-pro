@@ -1,5 +1,4 @@
 
-
 <!doctype html>
 <html lang="tr">
 <head>
@@ -7,1037 +6,395 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Haftalık</title>
 <style>
-html,body{height:100%;margin:0;background:var(--bg0);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
-:root{
-      --bg0:#060a12;
-      --bg1:#0b1220;
-      --cardTop: rgba(255,255,255,.06);
-      --cardBot: rgba(255,255,255,.03);
-      --text: rgba(255,255,255,.92);
-      --muted: rgba(255,255,255,.62);
-      --orange:#ff7a00;
-      --line: rgba(255,255,255,.10);
-      --shadow: 0 22px 70px rgba(0,0,0,.55);
-      --fs-base: 14px;
+  :root{
+    --bg0:#060a12;
+    --bg1:#0b1220;
+    --orange:#ff7a00;
+    --grid: rgba(255,255,255,.16);
+    --text: rgba(255,255,255,.92);
+    --muted: rgba(255,255,255,.70);
+    --innerPad: 18px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:
+      radial-gradient(900px 520px at 50% -200px, rgba(255,122,0,.14), transparent 60%),
+      linear-gradient(180deg, var(--bg0), var(--bg1));
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    color:var(--text);
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding: 18px 12px;
+  }
+
+  .phone{
+    max-height: 86vh;
+    width: min(900px, 92vw);
+    aspect-ratio: 16 / 9;
+    border: 3px solid var(--orange);
+    border-radius: 26px;
+    box-shadow: 0 28px 80px rgba(0,0,0,.55);
+    position:relative;
+    overflow:hidden;
+    padding: var(--innerPad);
+  }
+  
+  /* Gerçek yatayda tablo ekranı daha çok doldursun */
+  @media (orientation: landscape){
+    .phone{
+      width: 96vw;
+      aspect-ratio: 16 / 9;
     }
-.appFrame{ align-items: flex-start; }
-.appBorder{ overflow: visible; }
-.appInner{
-      max-width: 560px;
-      width: 100%;
-      margin: 0 auto;
-      padding: 0 2px; /* şeritten uzak dursun */
-    }
-
-/* ================== WEEKLY (Yeni) ================== */
-:root{ --weekly-rows: 7; }
-
-body.weekly-open{ overflow:hidden; }
-body.weekly-open .appBorder{ padding: 9px 9px 10px !important; }
-@media (max-width:480px){
-  body.weekly-open .appBorder{ padding: 7px 7px 9px !important; }
+  }
 
 
-/* === FIX6: Haftalık yatayda ekranı doldursun, turuncu şerit (appBorder) kaybolmasın === */
-body.weekly-open .appFrame{
-  padding: 0 !important;
-  min-height: 100svh;
-}
-body.weekly-open .appBorder{
-  width: 100vw !important;
-  min-height: 100svh !important;
-  height: 100svh !important;
-  margin: 0 !important;
-  /* turuncu şerit: mevcut border zaten turuncu, sadece boyut/padding ayarla */
-  padding: 10px 10px 12px !important;
-}
-body.weekly-open .appInner{
-  max-width: none !important;
-  width: 100% !important;
-  margin: 0 auto !important;
-}
-/* Weekly view, mevcut çerçevenin içinde tam alan kullansın */
-body.weekly-open #weeklyView .pad{
-  min-height: 100%;
-}
-/* Dikeyde: yazıları daha da kısaltıp sütunların tamamını göstermeye yardım et */
-@media (orientation: portrait){
-  /* Dikeyde 9 sütun (1 gün + 8 ders) sığsın diye yazıları ve boşlukları sıkılaştır */
-  body.weekly-open .wcell{ padding: 1px 1px; }
-  body.weekly-open .wday{ font-size: 10px; }
-  body.weekly-open .whead{ padding: 1px 1px; }
-  body.weekly-open .wtitle{ font-size: 9.5px; letter-spacing: -0.4px; }
-  body.weekly-open .wtime{ display:none !important; } /* dikeyde saat aralığını gizle */
-  body.weekly-open .wcls{ font-size: 9px; letter-spacing: -0.2px; }
-  body.weekly-open .wles{
-    font-size: 10.5px;
-    letter-spacing: -0.4px;
+  body.portrait .phone{
+    width: min(420px, 94vw);
+    aspect-ratio: 9 / 16;
+  }
+
+  .topBtns{
+    position:absolute;
+    left: 22px;
+    right: 22px;
+    top: 18px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    z-index: 5;
+    pointer-events:none;
+  }
+  .btn{
+    pointer-events:auto;
+    border: 1px solid rgba(255,255,255,.55);
+    background: rgba(255,255,255,.08);
+    color: var(--orange);
+    font-weight: 900;
+    border-radius: 12px;
+    padding: 6px 10px;
+    font-size: 13px;
+    line-height: 1;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,.25);
+    user-select:none;
+    cursor:pointer;
+  }
+  .btn:active{ transform: scale(.98); }
+
+  .hint{
+    pointer-events:none;
+    font-weight: 900;
+    font-size: 13px;
+    line-height: 1.1;
+    color: rgba(255,255,255,.86);
+    padding: 6px 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100%;
+    text-shadow: 0 1px 0 rgba(0,0,0,.35);
   }
-}
-@media (orientation: landscape){
-  body.weekly-open .appBorder{ padding: 8px 8px 10px !important; }
-}
-
-}
-
-#weeklyView{
-  position: relative;
-  padding: 0;
-  background:
-    radial-gradient(900px 520px at 50% -200px, rgba(255,122,0,.12), transparent 60%),
-    linear-gradient(180deg, var(--bg0), var(--bg1));
-}
-#weeklyView .pad{ position: relative; padding: 0; min-height: 100vh; }
-
-.weeklyTop{ display:flex; align-items:center; justify-content:flex-start; padding: 6px 8px 6px; }
-
-.orientation-hint{
-  display:inline-flex; align-items:center; gap:8px;
-  padding:7px 10px; border-radius:999px;
-  background: var(--orange);
-  border:1px solid rgba(0,0,0,0.12);
-  color:#000 !important;
-  font-weight:900; font-size: 12.5px;
-  white-space: nowrap; overflow:hidden; text-overflow: ellipsis; max-width: 100%;
-  box-shadow: 0 10px 22px rgba(255,122,0,.18);
-}
-.orientation-hint *{ color:#000 !important; }
-.orientation-hint .hint-ico{
-  display:inline-flex; align-items:center; justify-content:center;
-  width:18px; height:18px; border-radius:6px;
-  background: rgba(0,0,0,0.08);
-  border:1px solid rgba(0,0,0,0.10);
-  font-size:13px; line-height:1;
-}
-@media (orientation: landscape){ .weeklyTop{ display:none !important; } }
-
-.weeklyClose{
-  width: 40px; height: 40px; border-radius: 14px;
-  border: 1px solid rgba(255,122,0,.45);
-  background: var(--orange); color: #1b1209;
-  font-size: 22px; font-weight: 1000; line-height: 1;
-  display:flex; align-items:center; justify-content:center;
-  cursor:pointer; box-shadow: 0 12px 26px rgba(255,122,0,.18);
-}
-.weeklyClose.floating{ position:absolute; top:8px; right:8px; z-index:50; }
-@media (orientation: landscape){
-  .weeklyClose.floating{ top:6px; right:6px; width:34px; height:34px; border-radius:12px; font-size:20px; }
-}
-
-.weeklyTableWrapper{
-  width: 100%;
-  margin: 0;
-  border-radius: 18px;
-  border: 1px solid rgba(255,255,255,.12);
-  background: rgba(0,0,0,.14);
-  touch-action: pan-y; /* portrait: yatay sürüklemeyi biz yöneteceğiz */
-}
-
-/* === Haftalık (Yatay) Grid: 9 sütun x 8 satır === */
-.wgrid{
-  width:100%;
-  height:100%;
-  border:3px solid rgba(255,255,255,0.55);
-  border-radius:16px;
-  display:grid;
-  grid-template-columns:repeat(9,1fr);
-  grid-template-rows:repeat(8,1fr);
-  overflow:hidden;
-}
-
-/* Hücre çizgileri (biraz belirgin) */
-.wcell{
-  border-right:1.5px solid rgba(255,255,255,0.32);
-  border-bottom:1.5px solid rgba(255,255,255,0.32);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-  padding:4px 4px;
-  line-height:1.1;
-  background: rgba(0,0,0,.10);
-}
-
-/* Son sütun/son satır çizgisiz */
-.wcell:nth-child(9n){ border-right:none; }
-.wcell:nth-last-child(-n+9){ border-bottom:none; }
-
-/* Üst satır ve sol sütun kalın çizgili */
-.wcell.wtop{ border-bottom:3px solid rgba(255,255,255,0.70); background: rgba(0,0,0,.18); }
-.wcell.wleft{ border-right:3px solid rgba(255,255,255,0.70); background: rgba(0,0,0,.16); }
-
-/* Başlık hücreleri */
-.whead .wtitle{
-  font-weight:1000;
-  font-size: 12.5px;
-  color: rgba(255,255,255,.96);
-}
-.whead .wtime{
-  font-weight:800;
-  font-size: 10.5px;
-  color: rgba(255,255,255,.72);
-  margin-top:2px;
-  white-space:nowrap;
-}
-
-/* Gün başlığı */
-.wday{
-  font-weight:1000;
-  font-size: 13px;
-  color: rgba(255,255,255,.95);
-  justify-content:center;
-}
-
-/* Ders hücresi */
-.wcls{
-  font-size: 11px;
-  font-weight:700;
-  color: rgba(255,255,255,.75);
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  max-width:100%;
-}
-.wles{
-  font-size: 13px;
-  font-weight:1000;
-  color: rgba(255,255,255,.95);
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  max-width:100%;
-}
-
-/* Landscape: satır yüksekliği daha iyi kullanılsın */
-@media (orientation: landscape){
-  .weeklyTableWrapper{ height: calc(100vh - 6px); }
-  .wgrid{ height: 100%; }
-  .wcell{ padding: 3px 3px; }
-  .whead .wtitle{ font-size: 11.5px; }
-  .whead .wtime{ font-size: 9.8px; }
-  .wday{ font-size: 12px; }
-  .wcls{ font-size: 10px; }
-  .wles{ font-size: 12px; }
-}
 
 
-@media (orientation: portrait){
-  .weeklyTableWrapper{
-    overflow-x: auto; overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    max-height: calc(100vh - 62px);
+  .frame{
+    position:absolute;
+    inset: calc(var(--innerPad) + 54px) calc(var(--innerPad) + 10px) calc(var(--innerPad) + 24px) calc(var(--innerPad) + 10px);
+    border: 3px solid rgba(255,255,255,.95);
+    border-radius: 22px;
+    overflow:hidden;
   }
-}
-@media (orientation: landscape){
-  .weeklyTableWrapper{ overflow:hidden; height: calc(100vh - 6px); border-radius: 16px; touch-action: none; }
-}
-
-.weeklyTable{ width:100%; border-collapse: collapse; table-layout: fixed; }
-@media (orientation: portrait){ .weeklyTable{ min-width: 900px; } }
-
-.weeklyTable th, .weeklyTable td{
-  border: 1px solid rgba(255,255,255,.30);
-  padding: 0; vertical-align: middle; text-align: center;
-  background: rgba(0,0,0,.10); line-height: 1.0;
-}
-
-.weeklyTable thead th{
-  padding: 3px 1px;
-  font-weight: 900;
-  color: rgba(255,122,0,.92);
-  background: rgba(0,0,0,.18);
-  font-size: 12px;
-}
-.weeklyTable th.dayHead{
-  text-align:left; padding: 0 0 0 7px;
-  font-weight: 1000; color: rgba(255,255,255,.92);
-  width: 92px;
-}
-
-.thNo{ font-weight:1000; font-size:12px; }
-.thTime{ font-weight:800; font-size:10px; opacity:.72; margin-top:1px; }
-
-.weeklyCell{
-  display:flex; flex-direction: column; gap:0;
-  align-items:center; justify-content:center;
-  padding:0; margin:0; line-height:1.0;
-  min-height: 44px;
-}
-.weeklyCls, .weeklyLes{ margin:0; padding:0; line-height:1.0; }
-.weeklyCls{ font-size:10.4px; font-weight:650; opacity:.82; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
-.weeklyLes{ font-size:12.4px; font-weight:1000; opacity:.95; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
-
-/* ✅ Boş hücre çizgisi: HER YERDE aynı (ya hep ya hiç -> HEP) */
-.weeklyTable td.emptyTd{
-  color: rgba(255,255,255,.45);
-  font-weight: 700;
-  font-size: 14px;
-  letter-spacing: 0;
-  line-height: 1;
-}
-
-@media (orientation: landscape){
-  .weeklyTable td.emptyTd{ font-size: 13px; }
-}
-
-@media (orientation: portrait){
-  .weeklyTable th.dayHead{ width: 110px; }
-  .weeklyLes{ font-size: 13px; }
-  .thNo{ font-size: 12.2px; }
-  .thTime{ font-size: 10.2px; }
-}
-
-@media (orientation: landscape){
-  .weeklyTable thead th{ font-size: 10.8px; padding: 2px 1px; }
-  .weeklyTable th.dayHead{ width: 78px; font-size: 10.8px; padding-left: 6px; }
-  .thNo{ font-size: 10.8px; }
-  .thTime{ font-size: 9.3px; margin-top: 0px; }
-  .weeklyCls{ font-size: 9.0px; }
-  .weeklyLes{ font-size: 10.2px; }
-
-  .weeklyTable tbody tr{
-    height: calc((100vh - 76px) / var(--weekly-rows));
+  body.portrait .frame{
+    inset: calc(var(--innerPad) + 74px) calc(var(--innerPad) + 10px) auto calc(var(--innerPad) + 10px);
+    height: 42%;
+    min-height: 280px;
+    max-height: 420px;
   }
-  .weeklyCell{ min-height:0; height:100%; }
-}
-/* ===== Font Boost v2: Tablo yazıları belirgin büyüt ===== */
-.weeklyTable th.dayHead{ font-size: 15px !important; }
-.weeklyTable thead th{ font-size: 14.5px !important; }
 
-.weeklyTable .thNo{ font-size: 14.5px !important; }
-.weeklyTable .thTime{ font-size: 12.5px !important; }
+  .grid{
+    width:100%;
+    height:100%;
+    display:grid;
+    grid-template-columns: 70px repeat(8, 1fr);
+    grid-template-rows: 44px repeat(7, 1fr);
+    background: rgba(0,0,0,.14);
+  }
+  body.portrait .grid{
+    grid-template-columns: 52px repeat(8, 1fr);
+    grid-template-rows: 40px repeat(7, 1fr);
+  }
 
-.weeklyTable .weeklyCls{ font-size: 12.5px !important; }
-.weeklyTable .weeklyLes{ font-size: 15.5px !important; }
+  .cell{
+    border-right: 1px solid var(--grid);
+    border-bottom: 1px solid var(--grid);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding: 4px 6px;
+    font-weight: 900;
+    letter-spacing: .02em;
+    font-size: 12.5px;
+    line-height: 1.05;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .cell.muted{ color: rgba(255,255,255,.86); }
 
-/* Landscape modda da net fark */
-@media (orientation: landscape){
-  .weeklyTable th.dayHead{ font-size: 13.5px !important; }
-  .weeklyTable thead th{ font-size: 13px !important; }
-  .weeklyTable .thNo{ font-size: 13px !important; }
-  .weeklyTable .thTime{ font-size: 11.5px !important; }
-  .weeklyTable .weeklyCls{ font-size: 11px !important; }
-  .weeklyTable .weeklyLes{ font-size: 13.5px !important; }
-}
-/* ================================================ */
-/* ================== /WEEKLY ================== */
+  .cell.headCell{
+    flex-direction: column;
+    gap: 2px;
+    white-space: normal;
+  }
+  .time{
+    display:block;
+    margin-top: 2px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .02em;
+    color: rgba(255,255,255,.65);
+  }
 
-/* === FIXES (weekly) from main file === */
-/* === FIX6: Haftalık yatayda ekranı doldursun, turuncu şerit (appBorder) kaybolmasın === */
-body.weekly-open .appFrame{
-  padding: 0 !important;
-  min-height: 100svh;
-}
-body.weekly-open .appBorder{
-  width: 100vw !important;
-  min-height: 100svh !important;
-  height: 100svh !important;
-  margin: 0 !important;
-  /* turuncu şerit: mevcut border zaten turuncu, sadece boyut/padding ayarla */
-  padding: 10px 10px 12px !important;
-}
-body.weekly-open .appInner{
-  max-width: none !important;
-  width: 100% !important;
-  margin: 0 auto !important;
-}
-/* Weekly view, mevcut çerçevenin içinde tam alan kullansın */
-body.weekly-open #weeklyView .pad{
-  min-height: 100%;
-}
-/* Dikeyde: yazıları daha da kısaltıp sütunların tamamını göstermeye yardım et */
-@media (orientation: portrait){
-  /* Dikeyde 9 sütun (1 gün + 8 ders) sığsın diye yazıları ve boşlukları sıkılaştır */
-  body.weekly-open .wcell{ padding: 1px 1px; }
-  body.weekly-open .wday{ font-size: 10px; }
-  body.weekly-open .whead{ padding: 1px 1px; }
-  body.weekly-open .wtitle{ font-size: 9.5px; letter-spacing: -0.4px; }
-  body.weekly-open .wtime{ display:none !important; } /* dikeyde saat aralığını gizle */
-  body.weekly-open .wcls{ font-size: 9px; letter-spacing: -0.2px; }
-  body.weekly-open .wles{
-    font-size: 10.5px;
-    letter-spacing: -0.4px;
+  .demoLesson{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap: 2px;
+    text-align:center;
+    line-height:1.05;
+    font-weight: 900;
+    color: var(--orange);
+  }
+  .demoCls{ font-size: 11px; }
+  .demoLes{ font-size: 11px; font-weight: 800; }
+  body.portrait .demoCls, body.portrait .demoLes{ font-size: 10px; }
+
+  body.portrait .time{ font-size: 9px; }
+
+  .cell.small{
+    font-size: 11px;
+    font-weight: 900;
+    color: var(--orange);
+  }
+  body.portrait .cell.small{ font-size: 10.5px; }
+
+  .cell.dayCol{ border-right: 2px solid rgba(255,255,255,.78); }
+  .cell.headRow{ border-bottom: 2px solid rgba(255,255,255,.78); }
+
+  .cell.lastCol{ border-right: none; }
+  .cell.lastRow{ border-bottom: none; }
+
+  /* Dikeyde ders no tek satır kalsın */
+  body.portrait .cell.headCell{
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
   }
-}
-@media (orientation: landscape){
-  body.weekly-open .appBorder{ padding: 8px 8px 10px !important; }
-}
-
-}
-
-#weeklyView{
-  position: relative;
-  padding: 0;
-  background:
-    radial-gradient(900px 520px at 50% -200px, rgba(255,122,0,.12), transparent 60%),
-    linear-gradient(180deg, var(--bg0), var(--bg1));
-}
-#weeklyView .pad{ position: relative; padding: 0; min-height: 100vh; }
-
-.weeklyTop{ display:flex; align-items:center; justify-content:flex-start; padding: 6px 8px 6px; }
-
-.orientation-hint{
-  display:inline-flex; align-items:center; gap:8px;
-  padding:7px 10px; border-radius:999px;
-  background: var(--orange);
-  border:1px solid rgba(0,0,0,0.12);
-  color:#000 !important;
-  font-weight:900; font-size: 12.5px;
-  white-space: nowrap; overflow:hidden; text-overflow: ellipsis; max-width: 100%;
-  box-shadow: 0 10px 22px rgba(255,122,0,.18);
-}
-.orientation-hint *{ color:#000 !important; }
-.orientation-hint .hint-ico{
-  display:inline-flex; align-items:center; justify-content:center;
-  width:18px; height:18px; border-radius:6px;
-  background: rgba(0,0,0,0.08);
-  border:1px solid rgba(0,0,0,0.10);
-  font-size:13px; line-height:1;
-}
-@media (orientation: landscape){ .weeklyTop{ display:none !important; } }
-
-.weeklyClose{
-  width: 40px; height: 40px; border-radius: 14px;
-  border: 1px solid rgba(255,122,0,.45);
-  background: var(--orange); color: #1b1209;
-  font-size: 22px; font-weight: 1000; line-height: 1;
-  display:flex; align-items:center; justify-content:center;
-  cursor:pointer; box-shadow: 0 12px 26px rgba(255,122,0,.18);
-}
-.weeklyClose.floating{ position:absolute; top:8px; right:8px; z-index:50; }
-@media (orientation: landscape){
-  .weeklyClose.floating{ top:6px; right:6px; width:34px; height:34px; border-radius:12px; font-size:20px; }
-}
-
-.weeklyTableWrapper{
-  width: 100%;
-  margin: 0;
-  border-radius: 18px;
-  border: 1px solid rgba(255,255,255,.12);
-  background: rgba(0,0,0,.14);
-  touch-action: pan-y; /* portrait: yatay sürüklemeyi biz yöneteceğiz */
-}
-
-/* === Haftalık (Yatay) Grid: 9 sütun x 8 satır === */
-.wgrid{
-  width:100%;
-  height:100%;
-  border:3px solid rgba(255,255,255,0.55);
-  border-radius:16px;
-  display:grid;
-  grid-template-columns:repeat(9,1fr);
-  grid-template-rows:repeat(8,1fr);
-  overflow:hidden;
-}
-
-/* Hücre çizgileri (biraz belirgin) */
-.wcell{
-  border-right:1.5px solid rgba(255,255,255,0.32);
-  border-bottom:1.5px solid rgba(255,255,255,0.32);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-  padding:4px 4px;
-  line-height:1.1;
-  background: rgba(0,0,0,.10);
-}
-
-/* Son sütun/son satır çizgisiz */
-.wcell:nth-child(9n){ border-right:none; }
-.wcell:nth-last-child(-n+9){ border-bottom:none; }
-
-/* Üst satır ve sol sütun kalın çizgili */
-.wcell.wtop{ border-bottom:3px solid rgba(255,255,255,0.70); background: rgba(0,0,0,.18); }
-.wcell.wleft{ border-right:3px solid rgba(255,255,255,0.70); background: rgba(0,0,0,.16); }
-
-/* Başlık hücreleri */
-.whead .wtitle{
-  font-weight:1000;
-  font-size: 12.5px;
-  color: rgba(255,255,255,.96);
-}
-.whead .wtime{
-  font-weight:800;
-  font-size: 10.5px;
-  color: rgba(255,255,255,.72);
-  margin-top:2px;
-  white-space:nowrap;
-}
-
-/* Gün başlığı */
-.wday{
-  font-weight:1000;
-  font-size: 13px;
-  color: rgba(255,255,255,.95);
-  justify-content:center;
-}
-
-/* Ders hücresi */
-.wcls{
-  font-size: 11px;
-  font-weight:700;
-  color: rgba(255,255,255,.75);
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  max-width:100%;
-}
-.wles{
-  font-size: 13px;
-  font-weight:1000;
-  color: rgba(255,255,255,.95);
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  max-width:100%;
-}
-
-/* Landscape: satır yüksekliği daha iyi kullanılsın */
-@media (orientation: landscape){
-  .weeklyTableWrapper{ height: calc(100vh - 6px); }
-
-/* === FIX13: Sadece YATAYDA görünür yüksekliğe göre sığdır (turuncu şerit dışta kalsın) === */
-:root{ --vh: 1vh; }
-@media (orientation: landscape){
-  /* appBorder zaten turuncu çerçeve; yüksekliği gerçek görünür alana göre ayarla */
-  .appBorder{
-    height: calc((var(--vh) * 100) - 24px);
-    min-height: calc((var(--vh) * 100) - 24px);
-  }
-  /* Haftalık görünüm içeride taşmasın */
-  #weeklyView .pad{
-    max-height: 100%;
-    height: 100%;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
-  #weeklyView .weeklyTableWrapper{
-    flex: 1 1 auto;
-    min-height: 0;
-  }
-  #weeklyGrid{ min-height: 0; }
-}
-/* === FIX15: Yatayda iç tablo turuncu çerçevenin DIŞINA taşmasın (dikey aynen) === */
-@media (orientation: landscape){
-  /* Haftalık katmanı appBorder'ın içinde kalsın */
-  #weeklyView{
-    position: absolute !important;
-    inset: 0 !important;
-  }
-
-/* === FIX16: Yatayda 1-2px taşmayı kesin bitir (dikey aynen) === */
-@media (orientation: landscape){
-  /* wrapper'ı çok az kıs: turuncu çerçeveye kesin değmesin */
-  .weeklyTableWrapper{
-    max-height: calc(100% - 6px) !important;
-    padding-bottom: 6px !important;
-  }
-
-/* === FIX20: Canlı sayfada alt taşma için daha güçlü içeri alma (3x) === */
-@media (orientation: landscape){
-  .weeklyTableWrapper{
-    max-height: calc(100% - (44px + env(safe-area-inset-bottom, 0px))) !important;
-    padding-bottom: calc(44px + env(safe-area-inset-bottom, 0px)) !important;
-  }
-
-/* === FIX13: Sadece YATAYDA görünür yüksekliğe göre sığdır (turuncu şerit dışta kalsın) === */
-:root{ --vh: 1vh; }
-@media (orientation: landscape){
-  /* appBorder zaten turuncu çerçeve; yüksekliği gerçek görünür alana göre ayarla */
-  .appBorder{
-    height: calc((var(--vh) * 100) - 24px);
-    min-height: calc((var(--vh) * 100) - 24px);
-  }
-  /* Haftalık görünüm içeride taşmasın */
-  #weeklyView .pad{
-    max-height: 100%;
-    height: 100%;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
-  #weeklyView .weeklyTableWrapper{
-    flex: 1 1 auto;
-    min-height: 0;
-  }
-  #weeklyGrid{ min-height: 0; }
-}
-
-</style>
-<style>
-/* === ÜST BOŞLUK SIKIŞTIRMA === */
-body{margin:0 !important;padding:0 !important;}
-.frame{padding-top:2px !important;}
-.topbar{padding-top:2px !important;padding-bottom:2px !important;margin-bottom:2px !important;min-height:0 !important;}
-/* === TABLO ÜSTÜ YAZI === */
-.orientation-hint{
-  font-size:12px;
-  color:#9aa0a6;
-  text-align:center;
-  margin:2px 6px 4px 6px;
-}
-@media (orientation: landscape){
-  .orientation-hint{display:none;}
-}
-/* === SÜTUN DARALTMA === */
-th, td{padding:6px 6px !important;}
-.col-day{min-width:60px !important;}
-.col{min-width:80px !important;}
-.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-
-.lesson-time {
-  font-size: 0.85em;
-  color: #9aa3ad;
-  white-space: nowrap;
-  text-align: right;
-}
-
-
-/* === FIX13: Sadece YATAYDA görünür yüksekliğe göre sığdır (turuncu şerit dışta kalsın) === */
-:root{ --vh: 1vh; }
-@media (orientation: landscape){
-  /* appBorder zaten turuncu çerçeve; yüksekliği gerçek görünür alana göre ayarla */
-  .appBorder{
-    height: calc((var(--vh) * 100) - 24px);
-    min-height: calc((var(--vh) * 100) - 24px);
-  }
-  /* Haftalık görünüm içeride taşmasın */
-  #weeklyView .pad{
-    max-height: 100%;
-    height: 100%;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
-  #weeklyView .weeklyTableWrapper{
-    flex: 1 1 auto;
-    min-height: 0;
-  }
-  #weeklyGrid{ min-height: 0; }
-}
-
-</style>
-<style>
-/* === ÜST ALANI SIKIŞTIR + YAZIYI X'İN SOLUNA AL === */
-.topbar{
-  justify-content: space-between !important;
-  padding: 2px 4px 2px !important;
-  margin: 0 !important;
-  gap: 8px !important;
-}
-.topbarText{
-  flex: 1 1 auto;
-  font-size: 12px;
-  color: #9aa0a6;
-  line-height: 1.15;
-  padding-left: 2px;
-}
-@media (orientation: landscape){
-  .topbarText{ display:none; }
-}
-.closeBtn{
-  width: 32px !important;
-  height: 32px !important;
-  border-radius: 10px !important;
-  font-size: 18px !important;
-}
-.divider{ margin: 2px 0 4px !important; }
-.frame{ padding-top: 2px !important; }
-.tableWrap{ padding-top: 0 !important; margin-top: 0 !important; }
-
-.lesson-time {
-  font-size: 0.85em;
-  color: #9aa3ad;
-  white-space: nowrap;
-  text-align: right;
-}
-
-
-/* === FIX13: Sadece YATAYDA görünür yüksekliğe göre sığdır (turuncu şerit dışta kalsın) === */
-:root{ --vh: 1vh; }
-@media (orientation: landscape){
-  /* appBorder zaten turuncu çerçeve; yüksekliği gerçek görünür alana göre ayarla */
-  .appBorder{
-    height: calc((var(--vh) * 100) - 24px);
-    min-height: calc((var(--vh) * 100) - 24px);
-  }
-  /* Haftalık görünüm içeride taşmasın */
-  #weeklyView .pad{
-    max-height: 100%;
-    height: 100%;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
-  #weeklyView .weeklyTableWrapper{
-    flex: 1 1 auto;
-    min-height: 0;
-  }
-  #weeklyGrid{ min-height: 0; }
-}
-
-</style>
-<style>
-/* === HAFTALIK TABLO: SÜTUNLARI DARALT (YAZI SIĞACAK KADAR) === */
-/* Varsayılan: dik modda yatay kaydırma devam etsin */
-/* Daha kompakt hücreler */
-
-/* Yatay (landscape): ekranı taşırmasın, tablo genişliği ekrana otursun */
-@media (orientation: landscape){
-}
 
 </style>
 </head>
-<body class="weekly-open">
-<div class="appFrame">
-  <div class="appBorder">
-    <div class="appInner">
-<div id="weeklyView" class="view weekly" style="display:none;" aria-hidden="true">
-  <div class="pad">
-    <div class="weeklyTop" id="weeklyTopBar">
-      <div class="orientation-hint" id="weeklyHint">
-        <span class="hint-ico">↔</span>
-        <span>En iyi görünüm için telefonu <b>yatay</b> çevirin</span>
-      </div>
+<body class="portrait">
+  <div class="phone" role="application" aria-label="Haftalık">
+    <div class="topBtns">
+      <div class="hint">Daha iyi görünüm için telefonu yatay çevirin.</div>
+      <button id="backBtn" class="btn" type="button">Geri</button>
     </div>
 
-    <button class="weeklyClose floating" id="weeklyCloseBtn" title="Kapat" aria-label="Kapat">✕</button>
-
-    <div class="weeklyTableWrapper" id="weeklyTableWrapper">
-      <div class="wgrid" id="weeklyGrid" aria-label="Haftalık Ders Programı"></div>
+    <div class="frame">
+      <div id="grid" class="grid" aria-label="Haftalık çizelge"></div>
     </div>
   </div>
-</div>
 
-    </div>
-  </div>
-</div>
-
-<script>/* === Storage Keys (anasayfa ile AYNI) === */
+<script>
 const ALL_DAYS = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"];
-const LS_ACTIVE_DAYS_KEY    = "dt_active_days_v1";
-const LS_SCHEDULE_KEY       = "dt_schedule_v1";
-const LS_COURSE_COLORS_KEY  = "dt_course_colors_v1";
+const LS_SCHEDULE_KEY   = "dt_schedule_v1";
+const LS_ACTIVE_DAYS_KEY= "dt_active_days_v1";
+const LS_ITEMS_KEY      = "dt_items";
+const LS_COURSE_COLORS_KEY = "dt_course_colors_v1";
+const LS_TIME_FMT_KEY   = "dt_time_fmt_v1";
 
-/* JSON helpers */
 function loadJSON(key, fallback){
   try{
     const raw = localStorage.getItem(key);
     if(!raw) return fallback;
-    const v = JSON.parse(raw);
-    return (v !== null && typeof v === "object") ? v : fallback;
+    return JSON.parse(raw);
   }catch(e){ return fallback; }
 }
-function saveJSON(key, value){
-  try{ localStorage.setItem(key, JSON.stringify(value)); }catch(e){}
+
+function getTimeFmt(){
+  const v = localStorage.getItem(LS_TIME_FMT_KEY);
+  return (v === "start" || v === "range") ? v : "range";
 }
 
-/* Ders renkleri (anasayfa ile aynı mapping) */
-function loadCourseColors(){
-  const obj = loadJSON(LS_COURSE_COLORS_KEY, {});
-  return (obj && typeof obj === "object") ? obj : {};
-}
-function saveCourseColors(obj){
-  saveJSON(LS_COURSE_COLORS_KEY, (obj && typeof obj === "object") ? obj : {});
-}
-
-/* --- Weekly dependencies (extracted) --- */
-function escapeHtml(s){
-  return (s||"").replace(/[&<>"']/g, (c)=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[c]));
-}
-
-function abbrevTight(name){
-  const raw = (name || "").trim();
-  if(!raw) return "";
-  // Çok kısa hedef: 6-7 karakter gibi
-  if(raw.length <= 7) return raw;
-
-  const words = raw.split(/\s+/).filter(Boolean).map(w => w.replace(/[^\p{L}\p{N}]/gu, ""));
-  if(words.length >= 2){
-    // İlk harfler (örn: "Temel Dini Bilgiler" -> "TDB")
-    const initials = words.map(w => (w[0]||"").toUpperCase()).join("");
-    if(initials.length >= 2) return initials.slice(0, 4);
-  }
-  // Tek kelimeyse ilk 6-7 karakter
-  return raw.slice(0, 7);
-}
-
-function abbrevMeaningful(name){
-  const raw = (name || "").trim();
-  if(!raw) return "";
-  if(raw.length <= 10) return raw;
-
-  const words = raw.split(/\s+/).filter(Boolean).map(w => w.replace(/[^\p{L}\p{N}]/gu, ""));
-  if(words.length >= 3){
-    const a = words[0]?.[0] ? words[0][0].toUpperCase() : "";
-    const b = words[1]?.[0] ? words[1][0].toUpperCase() : "";
-    const c = words[2] || "";
-    if(a && b && c) return `${a}. ${b}. ${c}`;
-  }
-  if(words.length === 2){
-    const a = words[0]?.[0] ? words[0][0].toUpperCase() : "";
-    const b = words[1] || "";
-    if(a && b) return `${a}. ${b}`;
-  }
-  return raw;
+function getActiveDays(){
+  const v = loadJSON(LS_ACTIVE_DAYS_KEY, null);
+  return (Array.isArray(v) && v.length) ? v : [...ALL_DAYS];
 }
 
 function getCourseColor(name){
   const k = String(name||"").trim();
   if(!k) return null;
-  try{
-    const m = loadCourseColors();
-    return m[k] || null;
-  }catch(_){ return null; }
+  const m = loadJSON(LS_COURSE_COLORS_KEY, {});
+  return (m && typeof m === "object") ? (m[k] || null) : null;
 }
 
-function getLessonTimeForHeader(no){
-  const n = Number(no);
-  const dayList = (Array.isArray(ACTIVE_DAYS) && ACTIVE_DAYS.length) ? ACTIVE_DAYS : ALL_DAYS;
-  for(const day of dayList){
-    const arr = Array.isArray(SCHEDULE?.[day]) ? SCHEDULE[day] : [];
-    for(const r of arr){
-      const rn = Number(r?.no || 0);
-      const t = (r?.time || "").trim();
-      if(rn === n && t) return t;
-    }
+function readSchedule(){
+  const sch = loadJSON(LS_SCHEDULE_KEY, null);
+  if(sch && typeof sch === "object" && !Array.isArray(sch)){
+    const out = {};
+    ALL_DAYS.forEach(d=> out[d] = Array.isArray(sch[d]) ? sch[d] : []);
+    return out;
   }
-  return "";
-}
-
-function isPortrait(){ return window.matchMedia("(orientation: portrait)").matches; }
-
-function renderWeeklyGrid(){
-  const grid = document.getElementById("weeklyGrid");
-  if(!grid) return;
-
-  // Aktif günler: yalnızca seçili günleri göster (anasayfa gibi)
-  let days = (Array.isArray(ACTIVE_DAYS) && ACTIVE_DAYS.length) ? ACTIVE_DAYS.slice() : [];
-  if(!days.length) days = ALL_DAYS.slice(); // hiç seçim yoksa tüm günler
-
-  // En fazla 7 gün (tasarımın sol sütunu)
-  days = days.slice(0, 7);
-
-  const rows = days.length + 1; // +1 başlık satırı
-  const cols = 9;
-
-  // Satır sayısına göre grid'i dinamik kur
-  grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
-  grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-
-  // Grid temizle
-  grid.innerHTML = "";
-
-  for(let r=0; r<rows; r++){
-    for(let c=0; c<cols; c++){
-      const cell = document.createElement("div");
-      cell.className = "wcell";
-      if(r===0) cell.classList.add("wtop");
-      if(c===0) cell.classList.add("wleft");
-
-      // (0,0) köşesi boş
-      if(r===0 && c===0){
-        cell.innerHTML = "";
-        grid.appendChild(cell);
-        continue;
-      }
-
-      // Üst başlık: 1..8 Ders + saat (ayarlar/schedule'dan)
-      if(r===0 && c>=1){
-        const no = c;
-        const t = (getLessonTimeForHeader(no) || "").trim();
-        cell.classList.add("whead");
-        cell.innerHTML =
-          `<div class="wtitle">${isPortrait() ? (no + ". D") : (no + ". Ders")}</div>` +
-          ((!isPortrait() && t) ? `<div class="wtime">${escapeHtml(t)}</div>` : ``);
-        grid.appendChild(cell);
-        continue;
-      }
-
-      // Sol gün sütunu (seçili günler kadar)
-      if(c===0 && r>=1){
-        const day = days[r-1] || "";
-        cell.classList.add("wday");
-        cell.textContent = day;
-        grid.appendChild(cell);
-        continue;
-      }
-
-      // İç hücre: ders içeriği (ayarlar -> schedule)
-      const day = days[r-1] || "";
-      if(day){
-        const arr = Array.isArray(SCHEDULE?.[day]) ? SCHEDULE[day] : [];
-        const found = arr.find(x => Number(x?.no || 0) === c);
-        if(found){
-          const cls = (found.cls || "").trim();
-          const les = (found.les || "").trim();
-          const lesShort = isPortrait() ? abbrevTight(les) : abbrevMeaningful(les);
-          let col = getCourseColor(les);
-          if(col){
-            col = String(col).trim();
-            const ok = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(col) || /^rgba?\(/i.test(col) || /^hsla?\(/i.test(col);
-            if(!ok) col = null;
-          }
-          cell.innerHTML =
-            (cls ? `<div class="wcls">${escapeHtml(cls)}</div>` : ``) +
-            (lesShort ? ('<div class="wles"' + (col ? ' style="color:' + col + ' !important;"' : '') + '>' + escapeHtml(lesShort) + '</div>') : ``);
-        } else {
-          cell.innerHTML = "";
-        }
-      } else {
-        cell.innerHTML = "";
-      }
-
-      grid.appendChild(cell);
-    }
-  }
-}
-
-function renderWeeklyGrid(){
-  const grid = document.getElementById("weeklyGrid");
-  if(!grid) return;
-
-  // Aktif günler: yalnızca seçili günleri göster (anasayfa gibi)
-  let days = (Array.isArray(ACTIVE_DAYS) && ACTIVE_DAYS.length) ? ACTIVE_DAYS.slice() : [];
-  if(!days.length) days = ALL_DAYS.slice(); // hiç seçim yoksa tüm günler
-
-  // En fazla 7 gün (tasarımın sol sütunu)
-  days = days.slice(0, 7);
-
-  const rows = days.length + 1; // +1 başlık satırı
-  const cols = 9;
-
-  // Satır sayısına göre grid'i dinamik kur
-  grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
-  grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-
-  // Grid temizle
-  grid.innerHTML = "";
-
-  for(let r=0; r<rows; r++){
-    for(let c=0; c<cols; c++){
-      const cell = document.createElement("div");
-      cell.className = "wcell";
-      if(r===0) cell.classList.add("wtop");
-      if(c===0) cell.classList.add("wleft");
-
-      // (0,0) köşesi boş
-      if(r===0 && c===0){
-        cell.innerHTML = "";
-        grid.appendChild(cell);
-        continue;
-      }
-
-      // Üst başlık: 1..8 Ders + saat (ayarlar/schedule'dan)
-      if(r===0 && c>=1){
-        const no = c;
-        const t = (getLessonTimeForHeader(no) || "").trim();
-        cell.classList.add("whead");
-        cell.innerHTML =
-          `<div class="wtitle">${isPortrait() ? (no + ". D") : (no + ". Ders")}</div>` +
-          ((!isPortrait() && t) ? `<div class="wtime">${escapeHtml(t)}</div>` : ``);
-        grid.appendChild(cell);
-        continue;
-      }
-
-      // Sol gün sütunu (seçili günler kadar)
-      if(c===0 && r>=1){
-        const day = days[r-1] || "";
-        cell.classList.add("wday");
-        cell.textContent = day;
-        grid.appendChild(cell);
-        continue;
-      }
-
-      // İç hücre: ders içeriği (ayarlar -> schedule)
-      const day = days[r-1] || "";
-      if(day){
-        const arr = Array.isArray(SCHEDULE?.[day]) ? SCHEDULE[day] : [];
-        const found = arr.find(x => Number(x?.no || 0) === c);
-        if(found){
-          const cls = (found.cls || "").trim();
-          const les = (found.les || "").trim();
-          const lesShort = isPortrait() ? abbrevTight(les) : abbrevMeaningful(les);
-          let col = getCourseColor(les);
-          if(col){
-            col = String(col).trim();
-            const ok = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(col) || /^rgba?\(/i.test(col) || /^hsla?\(/i.test(col);
-            if(!ok) col = null;
-          }
-          cell.innerHTML =
-            (cls ? `<div class="wcls">${escapeHtml(cls)}</div>` : ``) +
-            (lesShort ? ('<div class="wles"' + (col ? ' style="color:' + col + ' !important;"' : '') + '>' + escapeHtml(lesShort) + '</div>') : ``);
-        } else {
-          cell.innerHTML = "";
-        }
-      } else {
-        cell.innerHTML = "";
-      }
-
-      grid.appendChild(cell);
-    }
-  }
-}
-
-
-// --- Standalone Weekly Bootstrap ---
-(function(){
-  // Load settings from localStorage (same keys as main page)
-  try{
-    const ad = localStorage.getItem(LS_ACTIVE_DAYS_KEY);
-    window.ACTIVE_DAYS = ad ? JSON.parse(ad) : [];
-  }catch(e){ window.ACTIVE_DAYS = []; }
-
-  try{
-    const sch = localStorage.getItem(LS_SCHEDULE_KEY);
-    window.SCHEDULE = sch ? JSON.parse(sch) : {};
-  }catch(e){ window.SCHEDULE = {}; }
-
-  // Ensure ALL_DAYS exists
-  window.ALL_DAYS = window.ALL_DAYS || ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"];
-
-  // Open weekly immediately
-  document.body.classList.add("weekly-open");
-  const weeklyView = document.getElementById("weeklyView");
-  if(weeklyView){
-    weeklyView.style.display = "block";
-    weeklyView.setAttribute("aria-hidden","false");
-  }
-
-  // Render
-  if (typeof renderWeeklyGrid === "function") renderWeeklyGrid();
-
-  // Re-render on rotate/resize
-  function rer(){
-    if (typeof renderWeeklyGrid === "function") renderWeeklyGrid();
-  }
-  window.addEventListener("orientationchange", function(){ setTimeout(rer, 250); }, {passive:true});
-  window.addEventListener("resize", function(){ setTimeout(rer, 150); }, {passive:true});
-
-  // Close button: go back if possible, else navigate to index.html
-  const btn = document.getElementById("weeklyCloseBtn");
-  if(btn){
-    btn.addEventListener("click", function(){
-      try{
-        if (history.length > 1) history.back();
-        else location.href = "index.html";
-      }catch(e){ location.href = "index.html"; }
+  const legacy = loadJSON(LS_ITEMS_KEY, null);
+  const out = {};
+  ALL_DAYS.forEach(d=>out[d]=[]);
+  if(Array.isArray(legacy)){
+    legacy.forEach(it=>{
+      const d = (it && (it.day || it.d || it.gun)) || "";
+      const day = ALL_DAYS.includes(d) ? d : null;
+      if(!day) return;
+      out[day].push({
+        no: it.no ?? it.dersNo ?? it.n,
+        cls: it.cls ?? it.c,
+        les: it.les ?? it.lesson ?? it.l,
+        time: it.time ?? it.t
+      });
     });
   }
-})();
+  return out;
+}
 
+function dayShort(day){
+  const map = {"Pazartesi":"Pzt","Salı":"Sal","Çarşamba":"Çar","Perşembe":"Per","Cuma":"Cum","Cumartesi":"Cmt","Pazar":"Paz"};
+  return map[day] || day;
+}
+function lessonLabel(i, portrait){
+  return portrait ? `${i}. D` : `${i}. Ders`;
+}
+
+function abbrSingleWord(w){
+  const s = (w||"").trim();
+  if(!s) return "";
+  if(s.length <= 6) return s;
+  return s.slice(0,4) + ".";
+}
+function abbrLessonName(name, portrait){
+  const raw = (name||"").toString().trim();
+  if(!raw) return "";
+  const parts = raw.split(/\s+/).filter(Boolean);
+
+  if(portrait){
+    if(parts.length === 2){
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    if(parts.length === 1){
+      return abbrSingleWord(parts[0]);
+    }
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }else{
+    if(parts.length >= 2){
+      return (parts[0][0].toUpperCase() + " " + parts[1]);
+    }
+    return raw;
+  }
+}
+
+function buildTimeByNo(schedule){
+  const times = {};
+  for(let i=1;i<=8;i++) times[i] = "";
+  for(const day of ALL_DAYS){
+    (schedule[day]||[]).forEach(r=>{
+      const no = parseInt(r && (r.no ?? r.dersNo ?? r.dersno ?? r.n), 10);
+      if(!(no>=1 && no<=8)) return;
+      const t = (r.time || "").trim();
+      if(!times[no] && t) times[no] = t;
+    });
+  }
+  if(!times[1]) times[1] = (getTimeFmt()==="start") ? "08:15" : "08:15-08:55";
+  return times;
+}
+
+function renderGrid(){
+  const portrait = !window.matchMedia('(orientation: landscape)').matches;
+  const grid = document.getElementById('grid');
+  grid.innerHTML = "";
+
+  const activeDays = getActiveDays();
+  const daysShown = (Array.isArray(activeDays) && activeDays.length)
+    ? ALL_DAYS.filter(d => activeDays.includes(d))
+    : ALL_DAYS.slice();
+
+  const headH = portrait ? 40 : 44;
+  grid.style.gridTemplateRows = `${headH}px repeat(${daysShown.length}, 1fr)`;
+
+  const schedule = readSchedule();
+  const timesByNo = buildTimeByNo(schedule);
+
+  const totalRows = 1 + daysShown.length;
+
+  for(let r=0; r<totalRows; r++){
+    for(let c=0; c<9; c++){
+      const el = document.createElement('div');
+      el.className = "cell";
+
+      const isHeadRow = (r===0);
+      const isDayCol = (c===0);
+
+      if(isDayCol) el.classList.add('dayCol');
+      if(isHeadRow) el.classList.add('headRow');
+
+      if(c===8) el.classList.add('lastCol');
+      if(r===totalRows-1) el.classList.add('lastRow');
+
+      if(r===0 && c===0){
+        el.textContent = "";
+      }else if(r===0 && c>0){
+        const i = c;
+        el.classList.add('muted','headCell');
+        if(portrait){
+          el.innerHTML = `<div>${lessonLabel(i, true)}</div>`;
+        }else{
+          el.innerHTML = `<div>${lessonLabel(i, false)}</div><span class="time">${timesByNo[i] || ""}</span>`;
+        }
+      }else if(r>0 && c===0){
+        const day = daysShown[r-1];
+        el.textContent = portrait ? dayShort(day) : day;
+        el.classList.add('muted');
+      }else{
+        el.innerHTML = `<div class="demoLesson"><div class="demoCls">22/A</div><div class="demoLes">Kelam</div></div>`;
+      }
+
+      grid.appendChild(el);
+    }
+  }
+}
+
+const toggleBtn = document.getElementById('toggleBtn');
+const backBtn = document.getElementById('backBtn');
+
+function syncRealOrientation(){
+  const isLand = window.matchMedia('(orientation: landscape)').matches;
+  document.body.classList.toggle('portrait', !isLand);
+}
+window.addEventListener('orientationchange', ()=>{ syncRealOrientation(); renderGrid(); });
+window.addEventListener('resize', ()=>{ syncRealOrientation(); renderGrid(); });
+
+
+function syncToggleText(){
+  // toggleBtn kaldırıldı; burada sadece uyumluluk için bırakıldı
+  return;
+}
+// toggleBtn kaldırıldı (hint yazısı var)
+
+
+backBtn.addEventListener('click', ()=>{
+  if(history.length > 1) history.back();
+  else window.location.href = "anasayfa.html";
+});
+
+syncRealOrientation();
+renderGrid();
 </script>
 </body>
 </html>
