@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="tr">
 <head>
@@ -256,6 +255,32 @@
     line-height: 1;
   }
 
+
+/* === FIX: SINIF/ŞUBE her zaman beyaz kalsın (ders rengi uygulanmasın) === */
+.demoCls,
+.wCls,
+.cls,
+.cellCls,
+.wkCls,
+[data-part="cls"]{
+  color: rgba(255,255,255,.92) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+
+/* === TUNE: SINIF/ŞUBE yazısı biraz daha ince ve zarif === */
+.demoCls,
+.wCls,
+.cls,
+.cellCls,
+.wkCls,
+[data-part="cls"]{
+  font-weight: 600 !important; /* ders adından ince */
+  letter-spacing: .02em;
+  opacity: .92;
+}
+
 </style>
 </head>
 <body class="portrait">
@@ -502,6 +527,28 @@ backBtn.addEventListener('click', ()=>{
 
 syncRealOrientation();
 renderGrid();
+
+
+/* === FIX: Ders rengi SINIF/ŞUBE'ye uygulanmasın (weekly runtime) === */
+(function(){
+  function enforceClsWhite(){
+    const root = document.getElementById('grid') || document.body;
+    const nodes = root.querySelectorAll('.demoCls,.wCls,.cls,.cellCls,.wkCls,[data-part="cls"]');
+    nodes.forEach(n=>{
+      n.style.color = 'rgba(255,255,255,.92)';
+      n.style.background = 'transparent';
+    });
+  }
+  const orig = window.renderGrid;
+  if(typeof orig === 'function'){
+    window.renderGrid = function(){
+      const res = orig.apply(this, arguments);
+      enforceClsWhite();
+      return res;
+    }
+  }
+  window.addEventListener('load', enforceClsWhite);
+})();
 
 </script>
 </body>
