@@ -1,507 +1,3764 @@
 
-<!doctype html>
+
+
+<!DOCTYPE html>
+
 <html lang="tr">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Haftalık</title>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Ders-Takip (Anasayfa + Ayarlar)</title>
 <style>
-  :root{
-    --bg0:#060a12;
-    --bg1:#0b1220;
-    --orange:#ff7a00;
-    --grid: rgba(255,255,255,.16);
-    --text: rgba(255,255,255,.92);
-    --muted: rgba(255,255,255,.70);
-    --innerPad: 18px;
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0;
-    background:
-      radial-gradient(900px 520px at 50% -200px, rgba(255,122,0,.14), transparent 60%),
-      linear-gradient(180deg, var(--bg0), var(--bg1));
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-    color:var(--text);
-    overflow:hidden;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding: 18px 12px;
-  }
+    body.nm-open{ overflow:hidden; }
 
-  .phone{
-    max-height: 86vh;
-    width: min(900px, 92vw);
-    aspect-ratio: 16 / 9;
-    border: 3px solid var(--orange);
-    border-radius: 26px;
-    box-shadow: 0 28px 80px rgba(0,0,0,.55);
-    position:relative;
-    overflow:hidden;
-    padding: var(--innerPad);
-  }
-  
-  /* Gerçek yatayda tablo ekranı daha çok doldursun */
-  @media (orientation: landscape){
-    .phone{
-      width: 96vw;
-      aspect-ratio: 16 / 9;
+    /* Ayarlar açıkken: iç scroll yerine sayfa (body) kayar */
+    body.settings-open .appBorder{ overflow: visible; }
+    body.settings-open #settingsView{ position: relative; inset: auto; overflow: visible; }
+    body.settings-open .appFrame{ align-items: flex-start; }
+    :root{
+      --bg0:#060a12;
+      --bg1:#0b1220;
+      --cardTop: rgba(255,255,255,.06);
+      --cardBot: rgba(255,255,255,.03);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.62);
+      --orange:#ff7a00;
+      --line: rgba(255,255,255,.10);
+      --shadow: 0 22px 70px rgba(0,0,0,.55);
+      --fs-base: 14px;
     }
-  }
+    
 
+/* Light mode: Notlar modal buttons (DÜZENLE / TEMİZLE) görünür olsun */
 
-  body.portrait .phone{
-    width: min(420px, 94vw);
-    aspect-ratio: 9 / 16;
-  }
+    *{box-sizing:border-box}
+    html{ font-size: var(--fs-base); }
+    body{
+      margin:0;
+      min-height:100vh;
+      background:
+        radial-gradient(900px 520px at 50% -200px, rgba(255,122,0,.12), transparent 60%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--text);
+      padding:0;
+      display:block;
+    }
 
-  .topBtns{
-    position:absolute;
-    left: 22px;
-    right: 22px;
-    top: 18px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    z-index: 5;
-    pointer-events:none;
-  }
-  .btn{
-    pointer-events:auto;
-    border: 1px solid rgba(255,255,255,.55);
-    background: rgba(255,255,255,.08);
-    color: var(--orange);
-    font-weight: 900;
-    border-radius: 12px;
-    padding: 6px 10px;
-    font-size: 13px;
-    line-height: 1;
-    box-shadow: inset 0 0 0 1px rgba(0,0,0,.25);
-    user-select:none;
-    cursor:pointer;
-  }
-  .btn:active{ transform: scale(.98); }
+    /* ===== DIŞ ÇERÇEVE (TURUNCU) + YERLEŞİM ===== */
+    .appFrame{
+      min-height:100vh;
+      padding: 18px;
+      display:flex;
+      justify-content:center;
+      align-items:stretch;
+    }
+    .appBorder{
+      isolation:isolate; /* overlay katmanları için */
+      width: min(1200px, calc(100vw - 36px));
+      min-height: calc(100vh - 36px);
+      border: 3px solid rgba(255,122,0,.95);
+      border-radius: 26px;
+      box-shadow: 0 0 0 2px rgba(0,0,0,.6) inset;
+      padding: 18px 18px 22px;
+      position: relative;
+      overflow: hidden;
+    }
+    .appInner{
+      max-width: 560px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 0 2px; /* şeritten uzak dursun */
+    }
+    @media (max-width: 480px){
+      .appFrame{ padding: 4px; }
+      .appBorder{
+        width: calc(100vw - 24px);
+        min-height: calc(100vh - 24px);
+        border-radius: 22px;
+        padding: 14px 14px 18px;
+      }
+    }
 
-  .hint{
-    pointer-events:none;
-    font-weight: 900;
-    font-size: 13px;
-    line-height: 1.1;
-    color: rgba(255,255,255,.86);
-    padding: 6px 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-shadow: 0 1px 0 rgba(0,0,0,.35);
-  }
+    /* ===== HOME VIEW ===== */
+    #homeView{ display:block; }
+    .topCard{
+      width: 100%;
+      max-width: 560px;
+      border-radius: 14px;
+      padding: 10px 10px 8px;
+            background: linear-gradient(180deg, rgba(14,18,28,.96), rgba(10,14,22,.96));
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04), 0 10px 26px rgba(0,0,0,.45);
+      position:relative;
+      overflow:hidden;
+      margin-top: 8px;
+    }
+        .content{ position:relative; z-index:2; }
+    .brand{
+      text-align:center; font-weight:1000; letter-spacing:.14em;
+      text-transform:uppercase; font-size:1.43rem; margin:0 0 22px; user-select:none;
+    }
+    .brand .orange{ color:var(--orange); }
 
+    .modeRow{
+  margin-top: 10px;
+      display:flex; justify-content:center; align-items:center;
+      gap:14px; margin-bottom:12px;
+    }
+    .pill{
+      padding:8px 16px; border-radius:13px; border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.05); box-shadow:inset 0 0 0 1px rgba(0,0,0,.28);
+      font-weight:1000; letter-spacing:.08em; font-size:.86rem; text-transform:uppercase;
+      color:rgba(255,255,255,.88); min-width:96px; text-align:center; cursor:pointer;
+      user-select:none;
+    }
+    .pill.active{
+      background:var(--orange); border-color:rgba(255,122,0,.55);
+      color:#1b1209; box-shadow:0 12px 26px rgba(255,122,0,.18);
+    }
+    .gearBtn{
+      width:40px; height:40px; border-radius:12px; border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.05); box-shadow:inset 0 0 0 1px rgba(0,0,0,.28);
+      display:grid; place-items:center; cursor:pointer;
+      user-select:none;
+    }
 
-  .frame{
-    position:absolute;
-    inset: calc(var(--innerPad) + 40px) 6px calc(var(--innerPad) + 40px) 6px;
-    border: 3px solid rgba(255,255,255,.95);
-    border-radius: 22px;
-    overflow:hidden;
-  }
-  body.portrait .frame{
-    inset: calc(var(--innerPad) + 74px) calc(var(--innerPad) + 10px) auto calc(var(--innerPad) + 10px);
-    height: 42%;
-    min-height: 280px;
-    max-height: 420px;
-  }
+    .daysWrap{ padding-top:2px; }
+    .daysScroll{
+      display:flex; gap:10px; overflow-x:auto; overflow-y:hidden;
+      -webkit-overflow-scrolling:touch; scroll-snap-type:x mandatory;
+      padding-left:50%; padding-right:50%;
+      scrollbar-width:none;
+    }
+    .daysScroll::-webkit-scrollbar{ display:none; }
+    .day{
+      flex:0 0 auto; scroll-snap-align:center;
+      padding:8px 14px; border-radius:13px; border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.05); box-shadow:inset 0 0 0 1px rgba(0,0,0,.28);
+      color:rgba(255,255,255,.78); font-weight:900; font-size:.86rem;
+      white-space:nowrap; cursor:pointer; user-select:none;
+    }
+    .day.active{
+      background:rgba(255,122,0,.92); border-color:rgba(255,122,0,.50);
+      color:#1b1209; box-shadow:0 12px 26px rgba(255,122,0,.18);
+    }
+    @media (max-width:420px){
+      .topCard{
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04), 0 10px 26px rgba(0,0,0,.45);
+ padding: 10px 10px 8px; }
+      .brand{ font-size:1.29rem; margin-bottom: 18px; }
+      .pill{ min-width:104px; padding:9px 16px; }
+      .gearBtn{ width:38px; height:38px; }
+      .day{ padding:7px 12px; font-size:.79rem; }
+      .daysScroll{ gap:8px; }
+    }
 
-  .grid{
-    width:100%;
-    height:100%;
-    display:grid;
-    grid-template-columns: 70px repeat(8, 1fr);
-    grid-template-rows: 44px repeat(7, 1fr);
-    background: rgba(0,0,0,.14);
-  }
-  body.portrait .grid{
-    grid-template-columns: 52px repeat(8, 1fr);
-    grid-template-rows: 40px repeat(7, 1fr);
-  }
+    .tblCard{
+      width: 100%;
+      max-width: 560px;
+      max-width: 96vw;
+      margin: 18px auto 0;
+      border-radius: 14px;
+      background: linear-gradient(180deg, var(--cardTop), var(--cardBot));
+      border: 1px solid rgba(255,255,255,.14);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.05), 0 10px 26px rgba(0,0,0,.45);
+      overflow: hidden;
+    }
+    .tblHead{
+      display:grid;
+      grid-template-columns: 34px 84px 1fr 110px;
+      padding: 12px 14px;
+      background: rgba(0,0,0,.30);
+      border-bottom: 1px solid rgba(255,255,255,.14);
+    }
+    .tblTh{
+      font-size: .86rem;
+      font-weight: 900;
+      letter-spacing: .14em;
+      color: rgba(255,255,255,.55);
+    }
+    .tblThTime{ text-align:right; }
+    .tblRow{
+      display:grid;
+      grid-template-columns: 34px 84px 1fr 110px;
+      padding: 10px 14px;
+      align-items:center;
+      border-bottom: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.18);
+    }
+    .tblRow:last-child{ border-bottom:none; }
+    .tblNo{ color: var(--orange); font-weight: 900; font-size: 1rem; }
+    .tblCls{ color: rgba(255,255,255,.88); font-weight: 900; font-size: 1rem; }
+    .tblLes{
+      color: rgba(255,255,255,.78);
+      font-weight: 800;
+      font-size: 1rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: clip;
+    }
+    .tblTime{
+      justify-self: end;
+      text-align: right;
+      /* Saatler: resimdeki gibi daha net/"keskin" ve okunakli */
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: .06em;
+      font-weight: 700;
+      font-size: .65rem;
+      opacity: 1;
+      color: rgba(210,225,245,.55);
+    }
+    .tblEmpty{
+      padding: 12px 14px;
+      color: rgba(255,255,255,.55);
+      font-weight: 800;
+      background: rgba(0,0,0,.14);
+    }
 
-  .cell{
-    border-right: 1px solid var(--grid);
-    border-bottom: 1px solid var(--grid);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    text-align:center;
-    padding: 4px 6px;
-    font-weight: 900;
-    letter-spacing: .02em;
-    font-size: 12.5px;
-    line-height: 1.05;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
+    .tblNotesWrap{
+      width: min(560px, 96vw);
+      max-width: 96vw;
+      margin: 10px auto 0;
+      display:flex;
+      justify-content:flex-start;
+    }
+    .tblNotesBtn{
+      padding: 8px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.25);
+      font-weight: 900;
+      letter-spacing: .14em;
+      font-size: 12px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      user-select:none;
+      cursor:pointer;
+    }
+    .noteDot{
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--orange);
+      box-shadow: 0 0 0 4px rgba(255,122,0,.15);
+      display:none;
+    }
+
+    /* ===== Settings View (overlay) ===== */
+    #settingsView{
+      position:relative;
+      inset:auto;
+      display:none;
+      overflow: visible;
+      padding: 0;
+      background:
+        radial-gradient(900px 520px at 50% -200px, rgba(255,122,0,.12), transparent 60%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+    }
+    #settingsView .pad{
+      padding: 18px;
+      min-height: 100vh;
+    }
+/* Weekly view uses tighter padding to reduce empty top space */
+.view.weekly .pad{padding:10px 12px 12px;}
+@media (orientation: landscape){.view.weekly .pad{padding:8px 10px 10px;}}
+
+    #settingsView .topBar { display:flex; align-items:center; justify-content:space-between; margin-bottom: 1rem; gap: .5rem; }
+    #settingsView .topBarLeft { flex:1; font-weight:1000; letter-spacing:.05em; font-size: 1rem; color: var(--orange); }
+    #settingsView .topBarCenter { flex:2; display:flex; justify-content:center; align-items:center; gap:.5rem; }
+    #settingsView .topBarRight { flex:1; display:flex; justify-content:flex-end; }
+    #settingsView .card{
+      border-radius: 14px; border: 1px solid var(--line);
+      background: linear-gradient(180deg, var(--cardTop), var(--cardBot));
+      padding: 1.5rem; max-width: 1000px; margin: 0 auto;
+      box-shadow: 0 18px 45px rgba(0,0,0,.45);
+    }
+    #settingsView .sectionGroup{ padding: 1.5rem 0; }
+    #settingsView .sectionTitle{ margin:0 0 1rem 0; font-weight:900; text-transform:uppercase; font-size:.8rem; color: var(--orange); opacity:.9; }
+    #settingsView .divider{ height:2px; background: linear-gradient(90deg, transparent, var(--orange), #fff, var(--orange), transparent); margin:0; opacity:.5; }
+
+    #settingsView .input,
+    #settingsView .btn{
+      background: rgba(255,255,255,.06); border: 1px solid var(--line); color: var(--text);
+      border-radius: 10px; padding: .5rem; font-weight: 700; outline:none; font-size: .85rem;
+      min-width: 0;
+    }
+    #settingsView select option{ background-color:#fff; color:#000; }
+    #settingsView .btn{ cursor:pointer; transition: .2s; white-space:nowrap; }
+    #settingsView .formGrid{ display:grid; grid-template-columns: repeat(5, 1fr); gap:.5rem; }
+    #settingsView .daysGrid{ display:grid; grid-template-columns: repeat(4, 1fr); gap:.5rem; }
+    @media (max-width: 550px){
+      #settingsView .formGrid, #settingsView .daysGrid{ grid-template-columns: repeat(2, 1fr); }
+      #settingsView .topBarLeft{ display:none; }
+    }
+    #settingsView .field{ border:1px solid var(--line); background: rgba(0,0,0,.18); border-radius:12px; padding:.5rem; }
+    
+    #settingsView .label{ font-size:.65rem; font-weight:900; color: var(--muted); margin-bottom:.2rem; display:block; }
+
+    #settingsView .progTableWrapper{ width:100%; border-radius:14px; border:1px solid var(--line); overflow:hidden; margin-top:.5rem; }
+    #settingsView .progHead, #settingsView .progRow{
+      display:grid;
+      grid-template-columns: 28px 75px 1fr 90px 25px;
+      gap:3px; padding: .5rem .2rem; align-items:center;
+    }
+    #settingsView .progHead{ background: rgba(255,255,255,.05); font-size:.65rem; font-weight:900; opacity:.6; text-align:center; }
+    #settingsView .lessonTag{ font-weight:900; font-size:.75rem; color: var(--orange); text-align:center; }
+    #settingsView .progRow select{
+      width:100%; font-size:.72rem; padding:.3rem .1rem;
+      background: rgba(255,255,255,.08); border-radius:6px; border:1px solid var(--line);
+      color: var(--text); outline:none;
+    }
+
+    #settingsView .saveContainer{ display:flex; justify-content:center; padding: 2rem 0; }
+    #settingsView .saveBtn{ background: var(--orange); color:white; border:none; padding:.8rem 3rem; border-radius:14px; font-size:1rem; font-weight:1000; }
+
+    /* ===== Notlar modal (basit) ===== */
+    /* ===== Notlar modal (aktif: Ödev/Not/Sınav + sil/düzenle) ===== */
+    .nmForm{
+      display:flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .nmInput, .nmSelect{
+      width:100%;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.92);
+      padding: 10px 12px;
+      font-weight: 800;
+      outline: none;
+      font-size: 13px;
+    }
+    .nmTextArea{
+      min-height: 52px;
+      resize: vertical;
+      line-height: 1.25;
+    }
+  
+  .nmInputRow{ display:flex; gap:12px; align-items:stretch; }
+  .nmInputRow .nmInput{ flex:1; }
+  .nmMiniDel{
+    width:64px;
+    border-radius:16px;
+    border:1px solid rgba(255,122,0,0.45);
+    background: rgba(255,122,0,0.14);
+    color: rgba(255,255,255,0.92);
+    font-size:18px;
   }
-  .cell.muted{ color: rgba(255,255,255,.86); }
+  .nmActions{
+      display:flex;
+      gap:10px;
+      margin-top: 10px;
+    }
+    .nmBtn{
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.92);
+      font-weight: 1000;
+      letter-spacing: .10em;
+      text-transform: uppercase;
+      font-size: 12px;
+      cursor: pointer;
+      user-select:none;
+    }
+    .nmBtn.primary{
+      background: var(--orange);
+      border-color: rgba(255,122,0,.55);
+      color: #1b1209;
+      box-shadow: 0 12px 26px rgba(255,122,0,.18);
+    }
+    .nmBtn.ghost{
+      background: rgba(0,0,0,.18);
+    }
 
-  .cell.headCell{
-    flex-direction: column;
-    gap: 2px;
-    white-space: normal;
-  }
-  .time{
-    display:block;
-    margin-top: 2px;
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: .02em;
-    color: rgba(255,255,255,.65);
-  }
+    .nmDayCard{
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.20);
+      padding: 10px 12px 12px;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.25);
+    }
+    .nmDayRow{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      margin-top: 10px;
+    }
+    .nmDayRow .nmBtn{ padding: 9px 12px; font-size: 11px; border-radius: 12px; }
+    .nmDayRow .nmBtn.primary{ color:#1b1209; }
+    .nmFieldTitle{
+      font-weight: 1000;
+      letter-spacing: .10em;
+      text-transform: uppercase;
+      font-size: 11px;
+      color: rgba(255,122,0,.92);
+      margin-top: 2px;
+    }
+    
+    /* === Notlar: Sadece NOTLAR ekranında turuncu bilgilendirme === */
+    .nmHintTop{
+      display:inline-flex; align-items:center; gap:8px;
+      margin: 10px 0 12px;
+      padding:7px 10px; border-radius:999px;
+      background: var(--orange);
+      border:1px solid rgba(0,0,0,0.12);
+      color:#000 !important;
+      font-weight:900; font-size: 12.5px;
+      white-space: nowrap; overflow:hidden; text-overflow: ellipsis; max-width: 100%;
+      box-shadow: 0 10px 22px rgba(255,122,0,.18);
+    }
+    .nmHintTop *{ color:#000 !important; }
 
-  .demoLesson{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    gap: 2px;
-    text-align:center;
-    line-height:1.05;
-    font-weight: 900;
-    color: var(--orange);
-  }
-  .demoCls{ font-size: 11px; }
-  .demoLes{ font-size: 11px; font-weight: 800; }
-  body.portrait .demoCls, body.portrait .demoLes{ font-size: 10px; }
+    /* Etiketler (Ödev/Not/Sınav vb.) turuncu görünüm */
+    .nmTag.orange{
+      border-color: rgba(255,122,0,.55);
+      color: rgba(255,180,120,.98);
+    }
+.nmHint{
+      margin: 6px 0 10px;
+      color: rgba(255,255,255,.55);
+      font-weight: 700;
+      font-size: 12px;
+    }
+    .nmListTitle{
+      margin-top: 8px;
+      font-weight: 1000;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-size: 12px;
+      color: rgba(255,255,255,.70);
+    }
+    .nmItem{
+      position: relative;
+      padding-right: 78px;
+    }
+    .nmIcons{
+      position:absolute;
+      right: 8px;
+      top: 8px;
+      display:flex;
+      gap:8px;
+      opacity: .95;
+    }
+    .nmIconBtn{
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.05);
+      color: rgba(255,255,255,.92);
+      cursor:pointer;
+      font-weight: 1000;
+      display:grid;
+      place-items:center;
+      user-select:none;
+    }
+    .nmIconBtn.danger{
+      border-color: rgba(255,60,60,.35);
+      color: rgba(255,160,160,.95);
+    }
+    .nmMeta{
+      margin-top: 4px;
+      color: rgba(255,255,255,.55);
+      font-weight: 700;
+      font-size: 12px;
+    }
+    @media (max-width: 520px){
+      .nmForm{
+      display:flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+      .nmForm .nmDate{ grid-column: 1 / -1; }
+    }
 
-  body.portrait .time{ font-size: 9px; }
+    .nmBackdrop{
+      position: fixed;
+      inset: 0;
+      /* daha yumuşak, göz yormayan perde */
+      background: rgba(0,0,0,.58);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      z-index: 9999;
+    }
+    .nmBackdrop.show{ display:flex; }
+    .nmModal{
+      width: min(520px, 96vw);
+      border-radius: 16px;
+      /* alt panel tonunda, temiz ve net */
+      background: linear-gradient(180deg, rgba(14,18,28,.98), rgba(10,14,22,.98));
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04), 0 22px 70px rgba(0,0,0,.70);
+      overflow: hidden;
+    }
+    .nmHeader{
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.22);
+    }
+    .nmTitle{
+      font-weight: 1000;
+      letter-spacing: .10em;
+      text-transform: uppercase;
+      font-size: 13px;
+      color: rgba(255,255,255,.90);
+    }
+    .nmClose{
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.05);
+      color: rgba(255,255,255,.90);
+      cursor: pointer;
+      font-weight: 900;
+    }
+    .nmBody{
+      padding: 12px 14px 14px;
+      color: rgba(255,255,255,.82);
+      font-size: 13px;
+    }
 
-  .cell.small{
-    font-size: 11px;
-    font-weight: 900;
-    color: var(--orange);
-  }
-  body.portrait .cell.small{ font-size: 10.5px; }
+    /* ---- Kontrast artırma (Notlar penceresi sayfa renginden ayrışsın) ---- */
+    /* Modal kendi içinde kayar */
+    .nmModal{
+      width: min(520px, 96vw);
+      border-radius: 16px;
+      /* alt panel tonunda, temiz ve net */
+      background: linear-gradient(180deg, rgba(14,18,28,.98), rgba(10,14,22,.98));
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04), 0 22px 70px rgba(0,0,0,.70);
+      overflow: hidden;
+    }
+    .nmBody{
+      overflow:auto;
+      max-height: calc(86vh - 54px);
+      -webkit-overflow-scrolling: touch;
+    }
 
-  .cell.dayCol{ border-right: 2px solid rgba(255,255,255,.78); }
-  .cell.headRow{ border-bottom: 2px solid rgba(255,255,255,.78); }
-
-  .cell.lastCol{ border-right: none; }
-  .cell.lastRow{ border-bottom: none; }
-
-  /* Dikeyde ders no tek satır kalsın */
-  body.portrait .cell.headCell{
-    white-space: nowrap;
-  }
-
-
-  /* === LANDSCAPE: hide hint, float back button === */
-  body:not(.portrait) .hint{
-    display: none;
-  }
-  body:not(.portrait) .topBtns{
-    pointer-events:none;
-  }
-  body:not(.portrait) #backBtn{
-    position: fixed;
-    top: 18px;
-    right: 22px;
-    z-index: 20;
-    pointer-events:auto;
-    background: rgba(0,0,0,.35);
-    backdrop-filter: blur(6px);
-  }
-
+    .nmBackdrop{
+      position: fixed;
+      inset: 0;
+      /* daha yumuşak, göz yormayan perde */
+      background: rgba(0,0,0,.58);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      z-index: 9999;
+    }
+    .nmModal{
+      width: min(520px, 96vw);
+      border-radius: 16px;
+      /* alt panel tonunda, temiz ve net */
+      background: linear-gradient(180deg, rgba(14,18,28,.98), rgba(10,14,22,.98));
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04), 0 22px 70px rgba(0,0,0,.70);
+      overflow: hidden;
+    }
+    .nmHeader{
+      background: rgba(0,0,0,.42);
+      border-bottom: 1px solid rgba(255,255,255,.14);
+    }
+    .nmBody{
+      background: rgba(0,0,0,.18);
+    }
+    .nmInput, .nmSelect{
+      background: rgba(255,255,255,.06);
+      border-color: rgba(255,255,255,.14);
+      color: rgba(255,255,255,.92);
+    }
+    .nmInput::placeholder{
+      color: rgba(255,255,255,.45);
+    }
+    .nmTextArea{
+      min-height: 52px;
+      resize: vertical;
+      line-height: 1.25;
+    }
+    .nmEmpty{ color: rgba(255,255,255,.55); font-weight: 700; padding: 8px 0; }
+    .nmItem{
+      display:flex; gap:10px; align-items:flex-start;
+      padding: 10px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.18);
+      margin-top: 8px;
+    }
+    .nmTag{
+      flex: 0 0 auto;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 1000;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      color: rgba(255,255,255,.80);
+    }
+    .nmTag.orange{ border-color: rgba(255,122,0,.45); color: rgba(255,180,120,.95); }
+    .nmText{ font-weight: 700; color: rgba(255,255,255,.88); line-height: 1.25; }
+    .nmHint{ margin: 10px 14px 0; padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(255,122,0,.25); background: rgba(255,122,0,.08); color: rgba(255,235,220,.92); font-size: 13px; line-height: 1.25; }
+    .nmSection{ padding: 0 14px; }
+    .nmSectionTitle{ margin: 12px 0 6px; font-weight: 1000; letter-spacing: .06em; text-transform: uppercase; font-size: 12px; color: rgba(255,255,255,.70); }
+    .nmRec{ display:flex; gap:10px; align-items:flex-start; padding: 10px 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,.08); background: rgba(0,0,0,.18); margin-top: 8px; cursor: pointer; }
+    .nmRec:active{ transform: scale(.99); }
+    .nmRecMain{ flex:1 1 auto; }
+    .nmRecTitle{ font-weight: 800; color: rgba(255,255,255,.90); line-height: 1.2; margin-bottom: 4px; }
+    .nmRecMeta{ color: rgba(255,255,255,.66); font-size: 13px; line-height: 1.25; }
+    .nmRecDate{ color: rgba(255,255,255,.55); font-size: 12px; white-space: nowrap; }
+    .nmToast{ position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); background: rgba(0,0,0,.78); color: rgba(255,255,255,.92); border: 1px solid rgba(255,255,255,.16); padding: 10px 12px; border-radius: 12px; z-index: 10050; display:none; max-width: 92vw; }
 
   
-  /* === LANDSCAPE: frame distance equal on all sides (match right/left) === */
-  body:not(.portrait) .frame{
-    inset: 6px 6px 6px 6px !important;
+/* --- FIX37: Ayarlar sayfası dış boşlukları sıfırla (şeride kadar genişlet) --- */
+@media (max-width: 640px){
+  /* Şerit içindeki tüm içerik şeride yaklaşsın */
+  #settingsView{ padding: 0 !important; }
+  #settingsView .pad{ padding: 0 !important; }
+
+  /* Ayarlar ana kartı tam genişlik */
+  #settingsView .card{
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
   }
 
-  /* === PORTRAIT: only bring left/right closer to orange, keep top/bottom same === */
-  body.portrait .frame{
-    inset: calc(var(--innerPad) + 74px) 6px auto 6px !important;
-    height: 42%;
-    min-height: 280px;
-    max-height: 420px;
+  /* Kart iç padding'i minimumda tut (0 yaparsak içerik yapışabilir) */
+  #settingsView .card{ padding-left: 8px !important; padding-right: 8px !important; }
+
+  /* Program alanı ve iç tablolar: tam genişlik */
+  #settingsView .progTableWrapper,
+  #settingsView .progTable,
+  #settingsView .progBody,
+  #settingsView .progHead,
+  #settingsView .progRow{
+    width: 100% !important;
+    max-width: none !important;
   }
 
+  /* Günlük ders programı bölümünün dış boşluklarını kaldır */
+  #settingsView .section,
+  #settingsView .sectionCard,
+  #settingsView .settingsSection{
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+}
+  
 
-  /* === HINT BAR STYLE (orange pill like mockup) === */
-  .hint{
-    pointer-events: auto;
-    background: linear-gradient(180deg, #ff9a2f, #ff7a00);
-    color: #1b0f05;
-    font-weight: 900;
-    font-size: 13px;
-    padding: 8px 14px;
-    border-radius: 999px;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    box-shadow:
-      0 6px 14px rgba(0,0,0,.35),
-      inset 0 0 0 1px rgba(0,0,0,.25);
+/* --- /FIX37 --- */
+
+/* ===== LIGHT MODE - FULL PAGE TUNING (fix) ===== */
+
+/* Background + frame */
+
+/* Cards/panels */
+
+/* Table look */
+
+/* Inputs/selects */
+
+/* Pills / buttons */
+
+/* Notes modal readability */
+
+/* Keep orange frame vivid on light */
+
+/* --- Light mode: Ana sayfa tablo & gün yazıları (Ayarlar ile aynı okunaklılık) --- */
+
+/* Light mode: table header labels + notes labels */
+
+/* ==== FIX: Gündüz mod Notlar yazıları siyah + tablo başlık zemini satırlarla aynı ==== */
+
+/* Gündüz mod: NOTLAR modal arka planı açık ve yazılar net */
+
+/* Gündüz mod: Tablo başlık zeminini satırlarla aynı yap */
+
+/* Light mode: Edit/Bitti button text should be black */
+
+
+
+style>
+<style>
+/* --- LIGHT MODE: NOTLAR modal close button fix --- */
+body.light .notlar-modal .close-btn,
+body.light .notlar-modal .btn-close,
+body.light .notlar-modal .modal-close,
+body.light .notlar-modal .close,
+body.light .notlar-modal button.close,
+body.light .notlar-modal [data-close],
+body.light .notlar-modal .close-x {
+  color: #000 !important;
+  background: #e6e6e6 !important;
+  border: 1px solid #000 !important;
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
+  border-radius: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 22px !important;
+  line-height: 1 !important;
+  opacity: 1 !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15) !important;
+}
+body.light .notlar-modal .close-btn:hover,
+body.light .notlar-modal .btn-close:hover,
+body.light .notlar-modal .modal-close:hover,
+body.light .notlar-modal .close:hover {
+  background: #d9d9d9 !important;
+}
+
+/* --- Light mode: Notes modal close button (kapat) --- */
+
+.nmRec.nmSelectable{ cursor:pointer; }
+.nmRec.nmSelectable:active{ transform: scale(0.99); }
+
+
+/* === Notlar paneli dış çerçeve rengi turuncu (kalınlık korunur) === */
+.nmModal, .notesModal, .nmSheet, .notesSheet {
+  border-color: var(--orange, #ff7a00) !important;
+}
+
+
+/* === Ders satırı için turuncu nokta (not/ödev/sınav varsa) === */
+.tblRow.hasLessonNote .tblNo{
+  position: relative; /* rakam yerinde kalsın */
+}
+.tblRow.hasLessonNote .tblNo::before{
+  content:"";
+  position:absolute;
+  left:-10px;           /* nokta rakamın önünde, dışarıda */
+  top:50%;
+  transform:translateY(-50%);
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background: var(--orange, #ff7a00);
+  box-shadow: 0 0 0 2px rgba(255,122,0,0.14);
+  pointer-events:none;
+}
+
+
+
+/* === AYARLAR: Gün/Saat satırı renk düzeltmeleri (koyu zemin + beyaz yazı) === */
+/* Haftalık tablo başlığı: Ders no + saat alanı */
+.weeklyTable thead th{
+  background: rgba(0,0,0,.12) !important;
+  color: rgba(255,255,255,.92) !important;
+}
+/* Gün sütunu: diğerlerinden biraz farklı tonda */
+.weeklyTable thead th.dayHead{
+  background: rgba(255,255,255,.06) !important;
+  color: rgba(255,255,255,.95) !important;
+}
+.weeklyTable tbody th.dayHead{
+  background: rgba(255,255,255,.05) !important;
+  color: rgba(255,255,255,.92) !important;
+}
+/* Saat satırı (thTime) biraz daha okunaklı */
+.weeklyTable .thTime{
+  opacity: .82 !important;
+  color: rgba(255,255,255,.78) !important;
+}
+/* Ders no (thNo) tam beyaz */
+.weeklyTable .thNo{
+  color: rgba(255,255,255,.95) !important;
+}
+
+
+/* === HAFTALIK TABLO: ÜST BAŞLIK SATIRI (DERS NO + SAATLER) === */
+.weeklyTable thead th{
+  background: rgba(255,255,255,0.06) !important; /* hafif gri */
+  color: rgba(255,255,255,0.95) !important;      /* beyaz yazı */
+  border-color: rgba(255,255,255,0.25) !important;
+}
+
+/* Ders no yazısı */
+.weeklyTable thead .thNo{
+  color: rgba(255,255,255,0.95) !important;
+}
+
+/* Saat yazısı */
+.weeklyTable thead .thTime{
+  color: rgba(255,255,255,0.80) !important;
+}
+
+/* Günler sütunu – üst satırdan biraz daha farklı ton */
+.weeklyTable thead th.dayHead{
+  background: rgba(255,255,255,0.10) !important;
+  color: rgba(255,255,255,0.98) !important;
+}
+
+
+/* === ÜST BAŞLIK SATIRI (DERS NO + SAATLER) – BİR TIK DAHA KOYU === */
+.weeklyTable thead th{
+  background: rgba(255,255,255,0.10) !important; /* önceki 0.06 -> 0.10 */
+  color: rgba(255,255,255,0.96) !important;
+  border-color: rgba(255,255,255,0.28) !important;
+}
+
+/* Günler sütunu (hala en koyu kalsın) */
+.weeklyTable thead th.dayHead{
+  background: rgba(255,255,255,0.14) !important;
+  color: #ffffff !important;
+}
+
+
+.lesson-time {
+  font-size: 0.85em;
+  color: #9aa3ad;
+  white-space: nowrap;
+  text-align: right;
+}
+
+
+/* === FIX13: Sadece YATAYDA görünür yüksekliğe göre sığdır (turuncu şerit dışta kalsın) === */
+:root{ --vh: 1vh; }
+@media (orientation: landscape){
+  /* appBorder zaten turuncu çerçeve; yüksekliği gerçek görünür alana göre ayarla */
+  .appBorder{
+    height: calc((var(--vh) * 100) - 24px);
+    min-height: calc((var(--vh) * 100) - 24px);
   }
-  .hintIcon{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: rgba(0,0,0,.18);
-    color: #1b0f05;
-    font-size: 14px;
-    font-weight: 900;
-    line-height: 1;
+  /* Haftalık görünüm içeride taşmasın */
+  #weeklyView .pad{
+    max-height: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
+  #weeklyView .weeklyTableWrapper{
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  #weeklyGrid{ min-height: 0; }
+}
+/* === FIX15: Yatayda iç tablo turuncu çerçevenin DIŞINA taşmasın (dikey aynen) === */
+@media (orientation: landscape){
+  /* Haftalık katmanı appBorder'ın içinde kalsın */
+  #weeklyView{
+    position: absolute !important;
+    inset: 0 !important;
+  }
+  /* Pad, çerçevenin iç yüksekliğini tam kullansın */
+  .view.weekly .pad{
+    height: 100% !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  /* Tablo sarmalayıcı: kalan alana sığ, taşma yapma */
+  .weeklyTableWrapper{
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+  /* Grid kesinlikle sarmalayıcıyı aşmasın */
+  .wgrid{ height: 100% !important; max-height: 100% !important; }
+}
+
+
+/* === FIX16: Yatayda 1-2px taşmayı kesin bitir (dikey aynen) === */
+@media (orientation: landscape){
+  /* wrapper'ı çok az kıs: turuncu çerçeveye kesin değmesin */
+  .weeklyTableWrapper{
+    max-height: calc(100% - 6px) !important;
+    padding-bottom: 6px !important;
+  }
+  .wgrid{
+    height: 100% !important;
+  }
+}
+/* === FIX20: Canlı sayfada alt taşma için daha güçlü içeri alma (3x) === */
+@media (orientation: landscape){
+  .weeklyTableWrapper{
+    max-height: calc(100% - (44px + env(safe-area-inset-bottom, 0px))) !important;
+    padding-bottom: calc(44px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
 
 </style>
+<style>
+/* === PORTRAIT HORIZONTAL SCROLL FIX === */
+
+
+.lesson-time {
+  font-size: 0.85em;
+  color: #9aa3ad;
+  white-space: nowrap;
+  text-align: right;
+}
+
+
+/* === FIX13: Sadece YATAYDA görünür yüksekliğe göre sığdır (turuncu şerit dışta kalsın) === */
+:root{ --vh: 1vh; }
+@media (orientation: landscape){
+  /* appBorder zaten turuncu çerçeve; yüksekliği gerçek görünür alana göre ayarla */
+  .appBorder{
+    height: calc((var(--vh) * 100) - 24px);
+    min-height: calc((var(--vh) * 100) - 24px);
+  }
+  /* Haftalık görünüm içeride taşmasın */
+  #weeklyView .pad{
+    max-height: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  #weeklyView .weeklyTableWrapper{
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  #weeklyGrid{ min-height: 0; }
+}
+
+</style>
+<style>
+/* === ÜST BOŞLUK SIKIŞTIRMA === */
+body{margin:0 !important;padding:0 !important;}
+.frame{padding-top:2px !important;}
+.topbar{padding-top:2px !important;padding-bottom:2px !important;margin-bottom:2px !important;min-height:0 !important;}
+/* === TABLO ÜSTÜ YAZI === */
+.orientation-hint{
+  font-size:12px;
+  color:#9aa0a6;
+  text-align:center;
+  margin:2px 6px 4px 6px;
+}
+@media (orientation: landscape){
+  .orientation-hint{display:none;}
+}
+/* === SÜTUN DARALTMA === */
+th, td{padding:6px 6px !important;}
+.col-day{min-width:60px !important;}
+.col{min-width:80px !important;}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+
+.lesson-time {
+  font-size: 0.85em;
+  color: #9aa3ad;
+  white-space: nowrap;
+  text-align: right;
+}
+
+
+/* === FIX13: Sadece YATAYDA görünür yüksekliğe göre sığdır (turuncu şerit dışta kalsın) === */
+:root{ --vh: 1vh; }
+@media (orientation: landscape){
+  /* appBorder zaten turuncu çerçeve; yüksekliği gerçek görünür alana göre ayarla */
+  .appBorder{
+    height: calc((var(--vh) * 100) - 24px);
+    min-height: calc((var(--vh) * 100) - 24px);
+  }
+  /* Haftalık görünüm içeride taşmasın */
+  #weeklyView .pad{
+    max-height: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  #weeklyView .weeklyTableWrapper{
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  #weeklyGrid{ min-height: 0; }
+}
+
+</style>
+<style>
+/* === ÜST ALANI SIKIŞTIR + YAZIYI X'İN SOLUNA AL === */
+.topbar{
+  justify-content: space-between !important;
+  padding: 2px 4px 2px !important;
+  margin: 0 !important;
+  gap: 8px !important;
+}
+.topbarText{
+  flex: 1 1 auto;
+  font-size: 12px;
+  color: #9aa0a6;
+  line-height: 1.15;
+  padding-left: 2px;
+}
+@media (orientation: landscape){
+  .topbarText{ display:none; }
+}
+.closeBtn{
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 10px !important;
+  font-size: 18px !important;
+}
+.divider{ margin: 2px 0 4px !important; }
+.frame{ padding-top: 2px !important; }
+.tableWrap{ padding-top: 0 !important; margin-top: 0 !important; }
+
+.lesson-time {
+  font-size: 0.85em;
+  color: #9aa3ad;
+  white-space: nowrap;
+  text-align: right;
+}
+
+
+/* === FIX13: Sadece YATAYDA görünür yüksekliğe göre sığdır (turuncu şerit dışta kalsın) === */
+:root{ --vh: 1vh; }
+@media (orientation: landscape){
+  /* appBorder zaten turuncu çerçeve; yüksekliği gerçek görünür alana göre ayarla */
+  .appBorder{
+    height: calc((var(--vh) * 100) - 24px);
+    min-height: calc((var(--vh) * 100) - 24px);
+  }
+  /* Haftalık görünüm içeride taşmasın */
+  #weeklyView .pad{
+    max-height: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  #weeklyView .weeklyTableWrapper{
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  #weeklyGrid{ min-height: 0; }
+}
+
+</style>
+<style>
+/* === HAFTALIK TABLO: SÜTUNLARI DARALT (YAZI SIĞACAK KADAR) === */
+/* Varsayılan: dik modda yatay kaydırma devam etsin */
+/* Daha kompakt hücreler */
+
+/* Yatay (landscape): ekranı taşırmasın, tablo genişliği ekrana otursun */
+@media (orientation: landscape){
+}
+@media (max-width: 420px){
+}
+
+.lesson-time {
+  font-size: 0.85em;
+  color: #9aa3ad;
+  white-space: nowrap;
+  text-align: right;
+}
+
+
+/* === FIX13: Sadece YATAYDA görünür yüksekliğe göre sığdır (turuncu şerit dışta kalsın) === */
+:root{ --vh: 1vh; }
+@media (orientation: landscape){
+  /* appBorder zaten turuncu çerçeve; yüksekliği gerçek görünür alana göre ayarla */
+  .appBorder{
+    height: calc((var(--vh) * 100) - 24px);
+    min-height: calc((var(--vh) * 100) - 24px);
+  }
+  /* Haftalık görünüm içeride taşmasın */
+  #weeklyView .pad{
+    max-height: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  #weeklyView .weeklyTableWrapper{
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  #weeklyGrid{ min-height: 0; }
+}
+
+</style>
+
+<style>
+/* Ders adı – tek satır, TAM GÖRÜNÜM */
+.td-ders,
+.ders-adi,
+.lesson-name {
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  max-width: none !important;
+  flex: 1 1 auto !important;
+}
+
+.lesson-time {
+  font-size: 0.85em;
+  color: #9aa3ad;
+  white-space: nowrap;
+  text-align: right;
+}
+
+
+/* === FIX13: Sadece YATAYDA görünür yüksekliğe göre sığdır (turuncu şerit dışta kalsın) === */
+:root{ --vh: 1vh; }
+@media (orientation: landscape){
+  /* appBorder zaten turuncu çerçeve; yüksekliği gerçek görünür alana göre ayarla */
+  .appBorder{
+    height: calc((var(--vh) * 100) - 24px);
+    min-height: calc((var(--vh) * 100) - 24px);
+  }
+  /* Haftalık görünüm içeride taşmasın */
+  #weeklyView .pad{
+    max-height: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  #weeklyView .weeklyTableWrapper{
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  #weeklyGrid{ min-height: 0; }
+}
+
+</style>
+
+<style>
+/* === FIX27: SINIF-DERS araligi + not noktasi gorunurlugu === */
+.tblRow{
+  grid-template-columns: 34px 70px 1fr 110px !important; /* SINIF dar, DERS genis */
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+  overflow: visible !important;
+}
+.tblNo{
+  position: relative !important;
+  overflow: visible !important;
+  padding-left: 10px !important; /* nokta icin yer */
+}
+.tblCls{
+  padding-right: 4px !important;
+}
+.tblLes{
+  padding-left: 4px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+/* Nokta artik hucrenin icinde, kirpilmaz */
+.tblRow.hasLessonNote .tblNo::before{
+  left: 0px !important;
+}
+
+.lesson-time {
+  font-size: 0.85em;
+  color: #9aa3ad;
+  white-space: nowrap;
+  text-align: right;
+}
+
+
+/* === FIX13: Sadece YATAYDA görünür yüksekliğe göre sığdır (turuncu şerit dışta kalsın) === */
+:root{ --vh: 1vh; }
+@media (orientation: landscape){
+  /* appBorder zaten turuncu çerçeve; yüksekliği gerçek görünür alana göre ayarla */
+  .appBorder{
+    height: calc((var(--vh) * 100) - 24px);
+    min-height: calc((var(--vh) * 100) - 24px);
+  }
+  /* Haftalık görünüm içeride taşmasın */
+  #weeklyView .pad{
+    max-height: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  #weeklyView .weeklyTableWrapper{
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  #weeklyGrid{ min-height: 0; }
+}
+
+</style>
+<style>
+
+/* ===== FIX35: Yazı boyutu sadece ALT TABLO'yu etkilesin (üst başlık sabit) ===== */
+:root{ --fsScale: 1; }
+/* Layout rem tabanlı kalsın */
+html{ font-size: 14px !important; }
+
+/* === ALT TABLO (Günlük ders tablosu) === */
+.tblCard .tblTh{ font-size: calc(12px * var(--fsScale)) !important; }
+.tblCard .tblNo{ font-size: calc(14px * var(--fsScale)) !important; }
+.tblCard .tblCls{ font-size: calc(14px * var(--fsScale)) !important; }
+.tblCard .tblLes{ font-size: calc(14px * var(--fsScale)) !important; }
+.tblCard .tblTime{ font-size: calc(12px * var(--fsScale)) !important; }
+
+/* Notlar butonu (alt kısım) */
+.tblNotesWrap, .tblNotesBtn{ font-size: calc(12px * var(--fsScale)) !important; }
+
+
+/* === AYARLAR SAYFASI (Settings) === */
+#settingsView{ font-size: calc(13px * var(--fsScale)) !important; }
+#settingsView .sectionTitle{ font-size: calc(12px * var(--fsScale)) !important; }
+#settingsView .label{ font-size: calc(11px * var(--fsScale)) !important; }
+#settingsView .input, #settingsView .btn{ font-size: calc(13px * var(--fsScale)) !important; }
+#settingsView .topBarLeft{ font-size: calc(14px * var(--fsScale)) !important; }
+#settingsView .topBarCenter, #settingsView .topBarRight{ font-size: calc(13px * var(--fsScale)) !important; }
+#settingsView .progHead{ font-size: calc(11px * var(--fsScale)) !important; }
+#settingsView .progRow select{ font-size: calc(12px * var(--fsScale)) !important; }
+#settingsView .lessonTag{ font-size: calc(12px * var(--fsScale)) !important; }
+#settingsView .saveBtn{ font-size: calc(14px * var(--fsScale)) !important; }
+
+
+/* ÜST BAŞLIK (Ders Takip / Günlük-Haftalık / Günler) SABİT KALSIN:
+   .brand, .pill, .gearBtn, .day (dokunmuyoruz) */
+</style>
+
+<style>
+/* === Saatleri küçült: net override === */
+.tblTime{ font-size:.65rem !important; font-weight:700 !important; letter-spacing:.04em !important; }
+
+/* === FIX13: Sadece YATAYDA görünür yüksekliğe göre sığdır (turuncu şerit dışta kalsın) === */
+:root{ --vh: 1vh; }
+@media (orientation: landscape){
+  /* appBorder zaten turuncu çerçeve; yüksekliği gerçek görünür alana göre ayarla */
+  .appBorder{
+    height: calc((var(--vh) * 100) - 24px);
+    min-height: calc((var(--vh) * 100) - 24px);
+  }
+  /* Haftalık görünüm içeride taşmasın */
+  #weeklyView .pad{
+    max-height: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  #weeklyView .weeklyTableWrapper{
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  #weeklyGrid{ min-height: 0; }
+}
+
+</style>
+
+
+<style id="time-fit-override">
+/* Saat sutunu daha kucuk + ders ismi kesilmesin (wrap acik) */
+@media (max-width: 720px){
+  .tblHead, .tblRow{
+    grid-template-columns: 34px 74px 1fr 92px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+}
+/* Tum ekranlarda ders adi kesilmesin */
+.tblLes{
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: initial !important;
+  word-break: break-word;
+  line-height: 1.12;
+}
+/* Saat alani sabit ve saga yasli kalsin */
+.tblTime{
+  justify-self: end !important;
+  text-align: right !important;
+}
+
+/* === FIX13: Sadece YATAYDA görünür yüksekliğe göre sığdır (turuncu şerit dışta kalsın) === */
+:root{ --vh: 1vh; }
+@media (orientation: landscape){
+  /* appBorder zaten turuncu çerçeve; yüksekliği gerçek görünür alana göre ayarla */
+  .appBorder{
+    height: calc((var(--vh) * 100) - 24px);
+    min-height: calc((var(--vh) * 100) - 24px);
+  }
+  /* Haftalık görünüm içeride taşmasın */
+  #weeklyView .pad{
+    max-height: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  #weeklyView .weeklyTableWrapper{
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  #weeklyGrid{ min-height: 0; }
+}
+
+</style>
+
+
+<style>
+/* TIMEFMT_TBLTIME_OVERRIDES — sıkı, ince ve net saat */
+html.timefmt-start .tblTime,
+html.timefmt-range .tblTime{
+  font-family: inherit !important;
+  font-variant-numeric: tabular-nums !important; /* rakamlar hizalı */
+  letter-spacing: -0.02em !important;             /* ✅ biraz sıkı */
+  font-weight: 500 !important;                    /* ince ama net */
+  font-size: 1rem !important;                     /* boyut aynı */
+  color: rgba(235,240,255,.85) !important;        /* netlik */
+}
+
+/* === FIX13: Sadece YATAYDA görünür yüksekliğe göre sığdır (turuncu şerit dışta kalsın) === */
+:root{ --vh: 1vh; }
+@media (orientation: landscape){
+  /* appBorder zaten turuncu çerçeve; yüksekliği gerçek görünür alana göre ayarla */
+  .appBorder{
+    height: calc((var(--vh) * 100) - 24px);
+    min-height: calc((var(--vh) * 100) - 24px);
+  }
+  /* Haftalık görünüm içeride taşmasın */
+  #weeklyView .pad{
+    max-height: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  #weeklyView .weeklyTableWrapper{
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  #weeklyGrid{ min-height: 0; }
+}
+
+</style>
+
+
+<style id="timefmt-colwidth-override">
+/* === Saat kolonu genişliği: formata göre dinamik === */
+:root{
+  --time-col-start: 5ch;   /* 08:15 */
+  --time-col-range: 11ch; /* 08:15-08:55 */
+}
+
+/* Varsayılan: range (giriş-çıkış) */
+.tblHead,
+.tblRow{
+  grid-template-columns: 34px 70px 1fr var(--time-col-range) !important;
+}
+
+/* Sadece giriş saati seçilince */
+html.timefmt-start .tblHead,
+html.timefmt-start .tblRow{
+  grid-template-columns: 34px 70px 1fr var(--time-col-start) !important;
+}
+
+/* Giriş–çıkış seçilince */
+html.timefmt-range .tblHead,
+html.timefmt-range .tblRow{
+  grid-template-columns: 34px 70px 1fr var(--time-col-range) !important;
+}
+
+/* Saat hücresi: taşma yapmasın */
+.tblTime{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+}
+
+/* === FIX13: Sadece YATAYDA görünür yüksekliğe göre sığdır (turuncu şerit dışta kalsın) === */
+:root{ --vh: 1vh; }
+@media (orientation: landscape){
+  /* appBorder zaten turuncu çerçeve; yüksekliği gerçek görünür alana göre ayarla */
+  .appBorder{
+    height: calc((var(--vh) * 100) - 24px);
+    min-height: calc((var(--vh) * 100) - 24px);
+  }
+  /* Haftalık görünüm içeride taşmasın */
+  #weeklyView .pad{
+    max-height: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  #weeklyView .weeklyTableWrapper{
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  #weeklyGrid{ min-height: 0; }
+}
+
+</style>
+
 </head>
-<body class="portrait">
-  <div class="phone" role="application" aria-label="Haftalık">
-    <div class="topBtns">
-      <div class="hint"><span class="hintIcon">↔</span> En iyi görünüm için yatay kullanın.</div>
-      <button id="backBtn" class="btn" type="button">Geri</button>
+<body>
+<div class="appFrame">
+<div class="appBorder">
+<div class="appInner">
+<!-- ================= HOME ================= -->
+<div id="homeView">
+<div class="topCard">
+<div class="content">
+<div class="brand">DERS-<span class="orange">TAKİP</span></div>
+<div class="modeRow">
+<div class="pill active" id="btnDaily">GÜNLÜK</div>
+<div class="pill" id="btnWeekly">HAFTALIK</div>
+<div class="gearBtn" id="btnSettings" title="Ayarlar">⚙</div>
+</div>
+<div class="daysWrap">
+<div class="daysScroll" id="daysScroll"></div>
+</div>
+</div>
+</div>
+<div aria-label="Ders Tablosu" class="tblCard">
+<div class="tblHead">
+<div class="tblTh">#</div>
+<div class="tblTh">SINIF</div>
+<div class="tblTh">DERS</div>
+<div class="tblTh tblThTime">SAAT</div>
+</div>
+<div id="tblBody"></div>
+</div>
+<div class="tblNotesWrap">
+<div class="tblNotesBtn notesBtn">NOTLAR <span class="noteDot"></span></div>
+</div>
+</div>
+</div><!-- /appInner -->
+<!-- ================= SETTINGS (overlay) ================= -->
+<!-- ================= WEEKLY ================= -->
+
+<!-- ================= WEEKLY (Yeni) ================= -->
+<div id="weeklyView" class="view weekly" style="display:none;" aria-hidden="true">
+  <div class="pad">
+    <div class="weeklyTop" id="weeklyTopBar">
+      <div class="orientation-hint" id="weeklyHint">
+        <span class="hint-ico">↔</span>
+        <span>En iyi görünüm için telefonu <b>yatay</b> çevirin</span>
+      </div>
     </div>
 
-    <div class="frame">
-      <div id="grid" class="grid" aria-label="Haftalık çizelge"></div>
+    <button class="weeklyClose floating" id="weeklyCloseBtn" title="Kapat" aria-label="Kapat">✕</button>
+
+    <div class="weeklyTableWrapper" id="weeklyTableWrapper">
+      <div class="wgrid" id="weeklyGrid" aria-label="Haftalık Ders Programı"></div>
+    </div>
+  </div>
+</div>
+<!-- ================= /WEEKLY ================= -->
+
+<div aria-hidden="true" id="settingsView">
+<div class="pad">
+<div class="topBar">
+<div class="topBarLeft">AYARLAR</div>
+<div class="topBarCenter">
+<div style="display:flex; align-items:center; gap:0.4rem;">
+<span style="font-size:0.7rem; font-weight:900;">YAZI:</span>
+<select class="input" id="fsSelect" style="padding:0.1rem 0.3rem">
+  <option value="13">KÜÇÜK</option>
+  <option value="16" selected>ORTA</option>
+  <option value="19">BÜYÜK</option>
+</select>
+</div>
+<button class="btn" id="themeToggle" style="padding: 0.3rem 0.6rem">🌓</button>
+</div>
+<div class="topBarRight"><button class="btn" id="settingsBackBtn">GERİ</button></div>
+</div>
+<div class="card">
+<div class="sectionGroup">
+<div class="sectionTitle">Saat Ayarları</div>
+<div class="formGrid">
+<div class="field"><label class="label">BAŞLANGIÇ</label><input class="input" id="set_start" style="width:100%" type="time" value="08:15"/></div>
+<div class="field"><label class="label">SÜRE (DK)</label><input class="input" id="set_dur" style="width:100%" type="number" value="40"/></div>
+<div class="field"><label class="label">TENEFFÜS</label><input class="input" id="set_break" style="width:100%" type="number" value="10"/></div>
+<div class="field"><label class="label">ÖĞLE ARASI</label><input class="input" id="set_lunch" style="width:100%" type="number" value="45"/></div>
+<div class="field"><label class="label">ÖĞLE NO</label><input class="input" id="set_lunch_no" style="width:100%" type="number" value="6"/></div>
+<div class="field"><label class="label">SAAT GÖRÜNÜMÜ</label><select class="input" id="timeFmtSel" style="width:100%"><option value="start">Sadece giriş saati (08:15)</option><option value="range">Giriş-çıkış (08:15-08:55)</option></select></div>
+</div>
+</div>
+<div class="divider"></div>
+<div class="sectionGroup">
+<div class="sectionTitle">Aktif Günler</div>
+<div class="daysGrid" id="activeDaysGroup">
+<label class="dayChk"><input checked="" data-day="Pazartesi" type="checkbox"/> Pzt</label>
+<label class="dayChk"><input checked="" data-day="Salı" type="checkbox"/> Sal</label>
+<label class="dayChk"><input checked="" data-day="Çarşamba" type="checkbox"/> Çar</label>
+<label class="dayChk"><input checked="" data-day="Perşembe" type="checkbox"/> Per</label>
+<label class="dayChk"><input checked="" data-day="Cuma" type="checkbox"/> Cum</label>
+<label class="dayChk"><input data-day="Cumartesi" type="checkbox"/> Cmt</label>
+<label class="dayChk"><input data-day="Pazar" type="checkbox"/> Paz</label>
+</div>
+</div>
+<div class="divider"></div>
+
+<div class="sectionGroup">
+  <div class="sectionTitle">Sınıf / Şube ve Ders Listeleri</div>
+
+  <div style="display:grid; grid-template-columns: 1fr; gap:0.75rem; margin-bottom: 0.75rem; width:100%;">
+    <!-- Sınıflar -->
+    <div class="field" style="padding:.75rem; width:100%;">
+      <div class="label" style="margin-bottom:.35rem;">Sınıf / Şube</div>
+      <div style="display:flex; gap:0.5rem;">
+        <input class="input" id="classOnlyInp" placeholder="9/A" style="width:5.2rem; height:40px"/>
+        <button class="btn" id="addClassBtn" style="background:var(--orange); color:white; height:40px; padding:0 .45rem; flex:0 0 64px; min-width:64px; max-width:64px; box-sizing:border-box;">EKLE</button>
+      </div>
+      <div id="classChipList" style="display:flex; flex-wrap:wrap; gap:0.4rem; margin-top:0.6rem;"></div>
+    </div>
+
+    <!-- Dersler -->
+    <div class="field" style="padding:.75rem; width:100%;">
+      <div class="label" style="margin-bottom:.35rem;">Ders</div>
+      <div style="display:grid; grid-template-columns: 1fr 24px 64px; gap:0.4rem; align-items:center; width:100%; max-width:100%; box-sizing:border-box;">
+        <input class="input" id="courseOnlyInp" placeholder="Ders adı" style="width:100%; min-width:0; height:40px; box-sizing:border-box;"/>
+        <input id="courseColorInp" type="color" value="#ff7a00" style="width:24px; height:40px; padding:0; border:none; background:transparent; border-radius:10px; overflow:hidden;; box-sizing:border-box;"/>
+        <button class="btn" id="addCourseBtn" style="background:var(--orange); color:white; height:40px; width:64px; min-width:64px; max-width:64px; padding:0; border-radius:12px; box-sizing:border-box; justify-self:end;">EKLE</button>
+        <input id="courseColorEdit" type="color" value="#7aa7ff" style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;"/>
+      </div>
+      <div id="courseChipList" style="display:flex; flex-wrap:wrap; gap:0.4rem; margin-top:0.6rem;"></div>
     </div>
   </div>
 
+  <div style="color:rgba(255,255,255,.55); font-weight:700; font-size:12px; line-height:1.25; margin-top:.1rem;">
+    Not: Sınıf ve dersleri ayrı ayrı ekleyebilirsin. Günlük programda sınıfı ve dersi listelerden seçersin.
+  </div>
+</div>
+<div class="divider"></div>
+<div class="sectionGroup">
+  <div class="sectionTitle">Günlük Ders Programı</div>
+
+<div style="display:flex; gap:0.5rem; margin-bottom:1rem;">
+<select class="input" id="daySelector" style="flex:1; height:40px"></select>
+<button class="btn" id="addRowBtn" style="background:var(--orange); color:white; height:40px; padding:0 1rem">+ SATIR</button>
+</div>
+<div class="progTableWrapper">
+<div class="progTable">
+<div class="progHead"><div>#</div><div>Sınıf</div><div>Ders Adı</div><div>Saat</div><div></div></div>
+<div id="progBody"></div>
+</div>
+</div>
+</div>
+<div class="saveContainer">
+<button class="btn saveBtn" id="mainSaveBtn">KAYDET</button>
+</div>
+</div>
+</div>
+</div><!-- /settingsView -->
+</div><!-- /appBorder -->
+</div><!-- /appFrame -->
+<!-- Notlar modal -->
+<div aria-hidden="true" class="nmBackdrop" id="nmBackdrop">
+<div aria-modal="true" class="nmModal" role="dialog">
+<div class="nmHeader">
+<div class="nmTitle">NOTLAR</div>
+</div>
+<div class="nmBody" id="nmBody"></div>
+</div>
+</div>
 <script>
-
+/* ================== ORTAK HELPERS ================== */
 const ALL_DAYS = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"];
-
-const LS_SCHEDULE_KEY      = "dt_schedule_v1";
-const LS_ACTIVE_DAYS_KEY   = "dt_active_days_v1";
-const LS_ITEMS_KEY         = "dt_items"; // legacy
-const LS_COURSE_COLORS_KEY = "dt_course_colors_v1";
-const LS_TIME_FMT_KEY      = "dt_time_fmt_v1";
-
-function loadJSON(key, fallback){
-  try{
-    const raw = localStorage.getItem(key);
-    if(!raw) return fallback;
-    return JSON.parse(raw);
-  }catch(e){ return fallback; }
-}
+const LS_SCHEDULE_KEY   = "dt_schedule_v1";     // { day: [{no,cls,les,time}, ...] }
+const LS_ACTIVE_DAYS_KEY= "dt_active_days_v1";  // ["Pazartesi","Çarşamba",...]
+const LS_ITEMS_KEY      = "dt_items";           // [LEGACY] [{c,d}] (geriye uyumluluk)
+const LS_CLASSES_KEY    = "dt_classes_v1";     // ["9/A","12/J",]
+const LS_COURSES_KEY    = "dt_courses_v1";     // ["Matematik","Kuran",]
+const LS_COURSE_COLORS_KEY = "dt_course_colors_v1"; // { "Matematik":"#RRGGBB", ... }
+const LS_NOTES_KEY      = "dt_notes_v1";        // [{...}]
+const LS_TIME_FMT_KEY   = "dt_time_fmt_v1";     // "start" | "range"
 
 function getTimeFmt(){
   const v = localStorage.getItem(LS_TIME_FMT_KEY);
   return (v === "start" || v === "range") ? v : "range";
 }
-
-function getActiveDays(){
-  const v = loadJSON(LS_ACTIVE_DAYS_KEY, null);
-  return (Array.isArray(v) && v.length) ? v : [...ALL_DAYS];
+function setTimeFmt(v){
+  try{ localStorage.setItem(LS_TIME_FMT_KEY, v); }catch(_){}
 }
 
+
+function applyTimeFmtClass(){
+  try{
+    const fmt = getTimeFmt();
+    document.documentElement.classList.remove("timefmt-start","timefmt-range");
+    document.documentElement.classList.add(fmt === "start" ? "timefmt-start" : "timefmt-range");
+  }catch(_){}
+}
+function loadJSON(key, fallback){
+  try{
+    const raw = localStorage.getItem(key);
+    if(!raw) return fallback;
+    const v = JSON.parse(raw);
+    return (v && typeof v === "object") ? v : fallback;
+  }catch(e){ return fallback; }
+}
+function saveJSON(key, value){
+  try{ localStorage.setItem(key, JSON.stringify(value)); }catch(e){}
+}
+
+
+function loadCourseColors(){
+  const obj = loadJSON(LS_COURSE_COLORS_KEY, {});
+  return (obj && typeof obj === "object") ? obj : {};
+}
+function saveCourseColors(obj){
+  saveJSON(LS_COURSE_COLORS_KEY, (obj && typeof obj === "object") ? obj : {});
+}
 function getCourseColor(name){
   const k = String(name||"").trim();
   if(!k) return null;
-  const m = loadJSON(LS_COURSE_COLORS_KEY, {});
-  return (m && typeof m === "object") ? (m[k] || null) : null;
+  try{
+    const m = loadCourseColors();
+    return m[k] || null;
+  }catch(_){ return null; }
 }
 
-/* Canonical: { day: [{no,cls,les,time}, ...] }  (legacy dt_items destekli) */
-function readSchedule(){
-  const sch = loadJSON(LS_SCHEDULE_KEY, null);
-  if(sch && typeof sch === "object" && !Array.isArray(sch)){
-    const out = {};
-    ALL_DAYS.forEach(d=> out[d] = Array.isArray(sch[d]) ? sch[d] : []);
-    return out;
-  }
-  // legacy migration view (dt_items)
-  const legacy = loadJSON(LS_ITEMS_KEY, null);
-  const out = {};
-  ALL_DAYS.forEach(d=>out[d]=[]);
-  if(Array.isArray(legacy)){
-    legacy.forEach(it=>{
-      const d = (it && (it.day || it.d || it.gun)) || "";
-      const day = ALL_DAYS.includes(d) ? d : null;
-      if(!day) return;
-      out[day].push({
-        no: it.no ?? it.dersNo ?? it.n,
-        cls: it.cls ?? it.c,
-        les: it.les ?? it.lesson ?? it.l,
-        time: it.time ?? it.t
-      });
-    });
+
+/* ================== HOME (ANASAYFA) ================== */
+const scroller = document.getElementById("daysScroll");
+const btnDaily = document.getElementById("btnDaily");
+const btnWeekly = document.getElementById("btnWeekly");
+const btnSettings = document.getElementById("btnSettings");
+
+let ACTIVE_DAYS = loadJSON(LS_ACTIVE_DAYS_KEY, [...ALL_DAYS]);
+if(!Array.isArray(ACTIVE_DAYS) || ACTIVE_DAYS.length === 0) ACTIVE_DAYS = [...ALL_DAYS];
+
+let SCHEDULE = loadJSON(LS_SCHEDULE_KEY, {});
+if(!SCHEDULE || typeof SCHEDULE !== "object") SCHEDULE = {};
+ALL_DAYS.forEach(d => { if(!Array.isArray(SCHEDULE[d])) SCHEDULE[d] = []; });
+
+let activeRealIndex = 0;
+let settleTimer = null;
+let isJumping = false;
+
+btnDaily.onclick = () => setMode("daily");
+btnWeekly.onclick = () => showWeekly();
+btnSettings.onclick = () => showSettings();
+
+function setMode(mode){
+  btnDaily.classList.remove("active");
+  btnWeekly.classList.remove("active");
+  if(mode === "daily") btnDaily.classList.add("active");
+  else btnWeekly.classList.add("active");
+}
+
+const COPIES = 3;
+const MID_COPY = 1;
+let VIRTUAL = [];
+
+function buildVirtualDays(days){
+  const out = [];
+  for(let c=0;c<COPIES;c++){
+    for(let i=0;i<days.length;i++){
+      out.push({ label: days[i], realIndex: i, copy: c });
+    }
   }
   return out;
 }
-
-function dayShort(day){
-  const map = {"Pazartesi":"Pzt","Salı":"Sal","Çarşamba":"Çar","Perşembe":"Per","Cuma":"Cum","Cumartesi":"Cmt","Pazar":"Paz"};
-  return map[day] || day;
+function virtualIndexFor(copy, realIndex){
+  return copy * ACTIVE_DAYS.length + realIndex;
 }
-function lessonLabel(i, portrait){
-  return portrait ? `${i}. D` : `${i}. Ders`;
+function scrollToVirtualIndex(vi, smooth){
+  const el = scroller.children[vi];
+  if(el){
+    el.scrollIntoView({behavior: smooth ? "smooth" : "auto", inline:"center", block:"nearest"});
+  }
+}
+function getClosestToCenter(){
+  const rect = scroller.getBoundingClientRect();
+  const centerX = rect.left + scroller.clientWidth / 2;
+  let best = null, bestDist = Infinity;
+  [...scroller.children].forEach(el=>{
+    const r = el.getBoundingClientRect();
+    const c = r.left + r.width/2;
+    const d = Math.abs(c - centerX);
+    if(d < bestDist){
+      bestDist = d;
+      best = { realIndex: Number(el.dataset.real), copy: Number(el.dataset.copy) };
+    }
+  });
+  return best;
+}
+function markActiveByRealIndex(realIndex){
+  activeRealIndex = realIndex;
+  [...scroller.children].forEach(el=>el.classList.remove("active"));
+  const mid = virtualIndexFor(MID_COPY, realIndex);
+  if(scroller.children[mid]) scroller.children[mid].classList.add("active");
+
+  const day = ACTIVE_DAYS[activeRealIndex] || ACTIVE_DAYS[0];
+  renderTable(day);
+  refreshNotlarDot(day);
+}
+function scrollToRealIndex(realIndex, smooth){
+  const center = getClosestToCenter();
+  const currentCopy = center ? Number(center.copy) : MID_COPY;
+  let target = virtualIndexFor(currentCopy, realIndex);
+  if(!scroller.children[target]) target = virtualIndexFor(MID_COPY, realIndex);
+
+  markActiveByRealIndex(realIndex);
+  scrollToVirtualIndex(target, smooth);
+}
+function renderDays(){
+  scroller.innerHTML = "";
+  VIRTUAL = buildVirtualDays(ACTIVE_DAYS);
+  VIRTUAL.forEach(item=>{
+    const el = document.createElement("div");
+    el.className = "day";
+    el.textContent = item.label;
+    el.dataset.real = item.realIndex;
+    el.dataset.copy = item.copy;
+    el.onclick = () => scrollToRealIndex(item.realIndex, true);
+    // Gün notu için: gün adına basılı tut
+    bindLongPress(el, ()=> openDayEditor(item.label), 550);
+    scroller.appendChild(el);
+  });
+  requestAnimationFrame(()=>{
+    markActiveByRealIndex(activeRealIndex);
+    scrollToVirtualIndex(virtualIndexFor(MID_COPY, activeRealIndex), false);
+  });
+}
+function settle(){
+  if(isJumping) return;
+  const info = getClosestToCenter();
+  if(!info) return;
+  markActiveByRealIndex(info.realIndex);
+  setTimeout(()=>{
+    if(info.copy !== MID_COPY){
+      const target = virtualIndexFor(MID_COPY, info.realIndex);
+      isJumping = true;
+      scrollToVirtualIndex(target, false);
+      setTimeout(()=>{ isJumping = false; }, 0);
+    }
+  },120);
+}
+scroller.addEventListener("scroll", ()=>{
+  if(settleTimer) clearTimeout(settleTimer);
+  settleTimer = setTimeout(settle, 120);
+},{passive:true});
+
+function getTodayIndex(){
+  const jsDay = new Date().getDay(); // 0=Sun ... 6=Sat
+  const map = [6,0,1,2,3,4,5];       // Pazartesi=0 ... Pazar=6
+  let idx = map[jsDay];
+  // Eğer bugün aktif değilse ilk aktif güne dön
+  if(!ACTIVE_DAYS.includes(ALL_DAYS[idx])) idx = 0;
+  // idx burada ALL_DAYS'e göre; ACTIVE_DAYS'e göre index'e çevir
+  const dayName = ALL_DAYS[map[jsDay]];
+  const realIdx = ACTIVE_DAYS.indexOf(dayName);
+  return realIdx >= 0 ? realIdx : 0;
 }
 
-function abbrSingleWord(w){
-  const s = (w||"").trim();
-  if(!s) return "";
-  if(s.length <= 6) return s;
-  return s.slice(0,4) + ".";
+// DERS hücresindeki uzun isimler iki satıra düşmeden tek satırda sığsın diye
+// metni hücrenin genişliğine göre otomatik küçültür.
+function normTime(t){
+  if (t == null) return "";
+  return String(t).replace(/s+/g, "").replace(/–/g, "-");
 }
-function abbrLessonName(name, portrait){
-  const raw = (name||"").toString().trim();
-  if(!raw) return "";
-  const parts = raw.split(/\s+/).filter(Boolean);
 
-  if(portrait){
-    // dikeyde: 1-2 harf kısalt
-    if(parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-    return abbrSingleWord(parts[0]);
-  }else{
-    // yatayda: daha okunur
-    if(parts.length >= 2) return (parts[0][0].toUpperCase() + " " + parts[1]);
-    return raw;
+function fitTextToCell(el, minPx=11){
+  if(!el) return;
+  // önce CSS varsayılana dön
+  el.style.fontSize = '';
+  // Safari/Android ölçüm için bir microtask
+  const cs = getComputedStyle(el);
+  let fs = Math.round(parseFloat(cs.fontSize) || 14);
+  const max = fs;
+  const min = Math.max(9, Math.round(minPx));
+  // Çok küçük hücrelerde gereksiz döngüyü engelle
+  if(el.clientWidth <= 0) return;
+  for(let s=max; s>=min; s--){
+    el.style.fontSize = s + 'px';
+    // 1px tolerans: font-render ölçüm farkları
+    if(el.scrollWidth <= el.clientWidth + 1) break;
   }
 }
 
-function getSlotCount(schedule, daysShown){
-  let n = 8;
-  try{
-    daysShown.forEach(day=>{
-      (schedule[day]||[]).forEach(r=>{
-        const no = parseInt(r && (r.no ?? r.dersNo ?? r.dersno ?? r.n), 10);
-        if(Number.isFinite(no)) n = Math.max(n, no);
+function renderTable(dayName){
+  const body = document.getElementById("tblBody");
+  if(!body) return;
+  body.innerHTML = "";
+
+  const rows = (SCHEDULE[dayName] || []);
+  if(!rows.length){
+    const empty = document.createElement("div");
+    empty.className = "tblEmpty";
+    empty.textContent = dayName + " için ders yok.";
+    body.appendChild(empty);
+    return;
+  }
+  rows.forEach((r, i)=>{
+    const row = document.createElement("div");
+    row.className = "tblRow";
+    row.innerHTML = `
+      <div class="tblNo">${r.no ?? (i+1)}</div>
+      <div class="tblCls">${r.cls ?? ""}</div>
+      <div class="tblLes" style="${getCourseColor(r.les) ? "color:"+getCourseColor(r.les)+" !important;" : ""}">${r.les ?? ""}</div>
+      <div class="tblTime">${normTime(r.time)}</div>
+    `;
+    // Ders notu eklemek için: satıra basılı tut
+    bindLongPress(row, ()=>{
+      const key = makeLessonKey(r);
+      openLessonEditor(dayName, key);
+    }, 550);
+
+    body.appendChild(row);
+  });
+
+  // metinler DOM'a yerleşince genişlik ölçümü yapıp sığdır
+  requestAnimationFrame(()=>{
+    body.querySelectorAll('.tblLes').forEach(el=>fitTextToCell(el, 11));
+  });
+}
+
+function updateActiveDays(newDays){
+  ACTIVE_DAYS = (Array.isArray(newDays) && newDays.length) ? [...newDays] : [...ALL_DAYS];
+  saveJSON(LS_ACTIVE_DAYS_KEY, ACTIVE_DAYS);
+  activeRealIndex = 0;
+  renderDays();
+}
+
+function setSchedule(newSchedule){
+  if(!newSchedule || typeof newSchedule !== "object") return;
+  SCHEDULE = newSchedule;
+  ALL_DAYS.forEach(d => { if(!Array.isArray(SCHEDULE[d])) SCHEDULE[d] = []; });
+  saveJSON(LS_SCHEDULE_KEY, SCHEDULE);
+  const day = ACTIVE_DAYS[activeRealIndex] || ACTIVE_DAYS[0];
+  renderTable(day);
+}
+
+/* ================== SETTINGS (AYARLAR) ================== */
+const settingsView = document.getElementById("settingsView");
+const homeView = document.getElementById("homeView");
+const settingsBackBtn = document.getElementById("settingsBackBtn");
+
+function hideWeekly(){
+  homeView.style.display = "block";
+  btnDaily.classList.add("active");
+  btnWeekly.classList.remove("active");
+}
+
+function showSettings(){
+  document.body.classList.add("settings-open");
+  window.scrollTo({top:0, behavior:"auto"});
+  settingsView.style.display = "block";
+  settingsView.setAttribute("aria-hidden","false");
+  homeView.style.display = "none";
+  // ayarlar ekranı açılınca içerikleri güncelle
+  initSettingsFromStorage();
+  settingsView.scrollTop = 0;
+}
+function hideSettings(){
+  document.body.classList.remove("settings-open");
+  window.scrollTo({top:0, behavior:"auto"});
+  settingsView.style.display = "none";
+  settingsView.setAttribute("aria-hidden","true");
+  homeView.style.display = "block";
+  // anasayfayı güncelle
+  ACTIVE_DAYS = loadJSON(LS_ACTIVE_DAYS_KEY, [...ALL_DAYS]);
+  if(!Array.isArray(ACTIVE_DAYS) || ACTIVE_DAYS.length === 0) ACTIVE_DAYS = [...ALL_DAYS];
+  SCHEDULE = loadJSON(LS_SCHEDULE_KEY, {});
+  if(!SCHEDULE || typeof SCHEDULE !== "object") SCHEDULE = {};
+  ALL_DAYS.forEach(d => { if(!Array.isArray(SCHEDULE[d])) SCHEDULE[d] = []; });
+  activeRealIndex = Math.min(activeRealIndex, ACTIVE_DAYS.length-1);
+  renderDays();
+}
+settingsBackBtn.onclick = hideSettings;
+
+document.getElementById("themeToggle").onclick = () => {
+};
+document.getElementById("fsSelect").onchange = (e)=>{
+  const v = e.target.value;
+  document.documentElement.style.setProperty('--fs-base', v);
+  localStorage.setItem("dt_fs_base", v);
+  applyGlobalTextSizetSize(v);
+};
+
+/* Settings logic (uyarlanmış) */
+(function(){
+  const progBody = document.getElementById('progBody');
+  const daySelector = document.getElementById('daySelector');
+  const activeDaysGroup = document.getElementById('activeDaysGroup');
+
+  let timeOptions = [];
+let timeOptionsStart = [];
+let timeOptionsRange = [];
+  
+  // --- Sınıf ve ders listeleri (ayrı) ---
+  // Eski sürümlerde "dt_items" içinde [{c,d}] tutuluyordu. Yeni sürümde:
+  //   dt_classes_v1 = ["9/A", ...]
+  //   dt_courses_v1 = ["Matematik", ...]
+  // İlk açılışta otomatik migration yapıyoruz.
+  let legacyItems = loadJSON(LS_ITEMS_KEY, []); // [LEGACY] [{c,d}]
+  if(!Array.isArray(legacyItems)) legacyItems = [];
+
+  let classesList = loadJSON(LS_CLASSES_KEY, []);
+  let coursesList = loadJSON(LS_COURSES_KEY, []);
+  let courseColors = loadCourseColors();
+  if(!Array.isArray(classesList)) classesList = [];
+  if(!Array.isArray(coursesList)) coursesList = [];
+
+  // Migration: yeni listeler boşsa, legacy'den doldur
+  if((classesList.length === 0 && coursesList.length === 0) && legacyItems.length){
+    try{
+      classesList = [...new Set(legacyItems.map(x => (x && x.c ? String(x.c) : '').trim().toUpperCase()).filter(Boolean))];
+      coursesList = [...new Set(legacyItems.map(x => (x && x.d ? String(x.d) : '').trim()).filter(Boolean))];
+      saveJSON(LS_CLASSES_KEY, classesList);
+      saveJSON(LS_COURSES_KEY, coursesList);
+      // renk map'i yoksa oluştur
+      courseColors = loadCourseColors();
+      coursesList.forEach(n=>{ if(!courseColors[n]) courseColors[n] = '#7aa7ff'; });
+      saveCourseColors(courseColors);
+    }catch(e){}
+  }
+
+
+  // SCHEDULE (canonical) buradan okunacak/yazılacak
+  function getActiveDaysFromUI(){
+    return [...activeDaysGroup.querySelectorAll('input:checked')].map(cb => cb.getAttribute('data-day'));
+  }
+
+  const updateDaySelector = () => {
+    const activeDays = getActiveDaysFromUI();
+    const currentDay = daySelector.value;
+
+    daySelector.innerHTML = activeDays.map(day =>
+      `<option value="${day}" ${day === currentDay ? 'selected' : ''}>${day}</option>`
+    ).join('');
+
+    if (activeDays.length > 0 && !daySelector.value) daySelector.value = activeDays[0];
+    loadSchedule(daySelector.value);
+  };
+
+  // ✅ Saat dropdown'u: kaç ders saati kullanılıyorsa o kadar seçenek göster
+  function getLessonSlotCount(){
+    // Varsayılan 8 (uygulamada hedeflenen)
+    let n = 8;
+
+    // Mevcut tabloda kaç satır varsa onu dikkate al (satır ekledikçe artabilir)
+    try{
+      const rows = progBody.querySelectorAll('.progRow, .row, tr');
+      if(rows && rows.length) n = Math.max(n, rows.length);
+    }catch(e){}
+
+    // Kayıtlı schedule içinde en büyük ders no'yu ara (no alanı varsa)
+    try{
+      const sch = readScheduleFromStorage();
+      const days = getActiveDaysFromUI();
+      days.forEach(d=>{
+        (sch[d]||[]).forEach(r=>{
+          const no = parseInt((r && (r.no ?? r.dersNo ?? r.dersno ?? r.n)) , 10);
+          if(Number.isFinite(no)) n = Math.max(n, no);
+        });
+      });
+    }catch(e){}
+
+    // En az 1, en fazla 15
+    n = Math.max(1, Math.min(15, n));
+    return n;
+  }
+
+const calculateTimes = () => {
+    const startVal = document.getElementById('set_start').value || "08:15";
+    const dur = parseInt(document.getElementById('set_dur').value) || 0;
+    const brk = parseInt(document.getElementById('set_break').value) || 0;
+    const lunch = parseInt(document.getElementById('set_lunch').value) || 0;
+    const lunchNo = parseInt(document.getElementById('set_lunch_no').value) || 0;
+
+    let [h, m] = startVal.split(':').map(Number);
+    let currentTotalMinutes = h * 60 + m;
+
+    timeOptionsStart = [];
+    timeOptionsRange = [];
+
+    for (let i = 1; i <= getLessonSlotCount(); i++) {
+      if (i === lunchNo && i > 1) currentTotalMinutes = currentTotalMinutes - brk + lunch;
+
+      let sH = Math.floor(currentTotalMinutes / 60) % 24;
+      let sM = currentTotalMinutes % 60;
+      let startStr = `${String(sH).padStart(2,'0')}:${String(sM).padStart(2,'0')}`;
+
+      currentTotalMinutes += dur;
+
+      let eH = Math.floor(currentTotalMinutes / 60) % 24;
+      let eM = currentTotalMinutes % 60;
+      let endStr = `${String(eH).padStart(2,'0')}:${String(eM).padStart(2,'0')}`;
+
+      timeOptionsStart.push(startStr);
+      timeOptionsRange.push(`${startStr}-${endStr}`);
+
+      currentTotalMinutes += brk;
+    }
+
+    // Seçime göre aktif liste
+    timeOptions = (getTimeFmt() === "start") ? timeOptionsStart : timeOptionsRange;
+
+    refreshAllTimeSelects();
+  };
+
+  const refreshAllTimeSelects = () => {
+    progBody.querySelectorAll('.tSel').forEach(sel => {
+      const currentVal = sel.value;
+      sel.innerHTML = '<option value="">Saat</option>' + timeOptions.map(t => `<option value="${t}">${t}</option>`).join('');
+      if(timeOptions.includes(currentVal)) sel.value = currentVal;
+    });
+  };
+
+  function readScheduleFromStorage(){
+    let sch = loadJSON(LS_SCHEDULE_KEY, {});
+    if(!sch || typeof sch !== "object") sch = {};
+    ALL_DAYS.forEach(d => { if(!Array.isArray(sch[d])) sch[d] = []; });
+    return sch;
+  }
+  function writeScheduleToStorage(sch){
+    ALL_DAYS.forEach(d => { if(!Array.isArray(sch[d])) sch[d] = []; });
+    saveJSON(LS_SCHEDULE_KEY, sch);
+  }
+
+  function convertAllScheduleTimes(targetFmt){
+    try{ calculateTimes(); }catch(_){}
+
+    const sch = readScheduleFromStorage();
+    const mapToStart = (t)=> (t || "").split("-")[0].trim();
+    const mapToRange = (t)=>{
+      const start = (t || "").split("-")[0].trim();
+      const found = (timeOptionsRange||[]).find(x => x.startsWith(start + "-"));
+      return found || (t || "");
+    };
+
+    ALL_DAYS.forEach(day=>{
+      (sch[day] || []).forEach(row=>{
+        if(!row) return;
+        const cur = row.time || "";
+        row.time = (targetFmt === "start") ? mapToStart(cur) : mapToRange(cur);
       });
     });
-  }catch(_){}
-  // en az 1 en fazla 15
-  n = Math.max(1, Math.min(15, n));
-  return n;
-}
 
-function getRowFor(schedule, day, no){
-  const rows = schedule[day] || [];
-  // aynı ders no tekrar girilmişse ilkini al
-  for(const r of rows){
-    const n = parseInt(r && (r.no ?? r.dersNo ?? r.dersno ?? r.n), 10);
-    if(n === no) return r;
+    writeScheduleToStorage(sch);
+
+    // Ayarlar tablosundaki mevcut select değerleri de güncellensin
+    try{
+      const pb = document.getElementById('progBody') || (typeof progBody!=="undefined" ? progBody : null);
+      if(pb) pb.querySelectorAll('.tSel').forEach(sel=>{
+        const cur = sel.value || "";
+        sel.value = (targetFmt === "start") ? mapToStart(cur) : mapToRange(cur);
+      });
+    }catch(_){}
+
+    // Anasayfa/haftalık anında güncellensin
+    try{ setSchedule(readScheduleFromStorage()); }catch(_){}
   }
-  return null;
-}
+  // Expose for other scopes
+  try{ window.__convertAllScheduleTimes = convertAllScheduleTimes; }catch(_){}
 
-function buildTimeByNo(schedule, daysShown, slots){
-  const times = {};
-  for(let i=1;i<=slots;i++) times[i] = "";
-  for(const day of daysShown){
-    (schedule[day]||[]).forEach(r=>{
-      const no = parseInt(r && (r.no ?? r.dersNo ?? r.dersno ?? r.n), 10);
-      if(!(no>=1 && no<=slots)) return;
-      const t = (r.time || "").trim();
-      if(!times[no] && t) times[no] = t;
+
+  const saveCurrentDay = () => {
+    const day = daySelector.value;
+    if(!day) return;
+
+    const sch = readScheduleFromStorage();
+    const rows = [...progBody.querySelectorAll('.progRow')];
+
+    sch[day] = rows.map((row, idx) => {
+      const selects = row.querySelectorAll('select');
+      return {
+        no: idx + 1,
+        cls: selects[0].value,
+        les: selects[1].value,
+        time: selects[2].value
+      };
     });
-  }
-  if(!times[1]) times[1] = (getTimeFmt()==="start") ? "08:15" : "08:15-08:55";
-  return times;
-}
 
-function renderGrid(){
-  const isLand = window.matchMedia('(orientation: landscape)').matches;
-  const portrait = !isLand;
+    writeScheduleToStorage(sch);
+  };
 
-  const grid = document.getElementById('grid');
-  grid.innerHTML = "";
+  const loadSchedule = (day) => {
+    progBody.innerHTML = '';
+    if(!day) return;
 
-  const activeDays = getActiveDays();
-  const daysShown = (Array.isArray(activeDays) && activeDays.length)
-    ? ALL_DAYS.filter(d => activeDays.includes(d))
-    : ALL_DAYS.slice();
+    const sch = readScheduleFromStorage();
+    const arr = Array.isArray(sch[day]) ? sch[day] : [];
+    arr.forEach(data => addRow(data));
+  };
 
-  const schedule = readSchedule();
-  const slots = getSlotCount(schedule, daysShown);
-  const timesByNo = buildTimeByNo(schedule, daysShown, slots);
+  const addRow = (data = null) => {
+    const row = document.createElement('div');
+    row.className = 'progRow';
+    const num = progBody.children.length + 1;
+    const classes = [...new Set((classesList||[]).map(v=>String(v).trim().toUpperCase()).filter(Boolean))];
+    const courses = [...new Set((coursesList||[]).map(v=>String(v).trim()).filter(Boolean))];
 
-  // grid layout
-  const headH = portrait ? 40 : 44;
-  const dayColW = portrait ? 52 : 70;
+    row.innerHTML = `
+      <div class="lessonTag">${num}</div>
+      <select><option value="">Sınıf</option>${classes.map(c=>`<option value="${c}">${c}</option>`).join('')}</select>
+      <select><option value="">Ders</option>${courses.map(d=>`<option value="${d}">${d}</option>`).join('')}</select>
+      <select class="tSel"><option value="">Saat</option>${timeOptions.map(t=>`<option value="${t}">${t}</option>`).join('')}</select>
+      <button style="background:none; border:none; color:red; cursor:pointer; font-weight:bold" title="Sil">✕</button>
+    `;
 
-  grid.style.gridTemplateColumns = `${dayColW}px repeat(${slots}, 1fr)`;
-  grid.style.gridTemplateRows = `${headH}px repeat(${daysShown.length}, 1fr)`;
+    const delBtn = row.querySelector('button');
+    delBtn.onclick = () => { row.remove(); renumber(); saveCurrentDay(); };
 
-  const totalRows = 1 + daysShown.length;
-  const totalCols = 1 + slots;
+    const selects = row.querySelectorAll('select');
+    if(data){
+      selects[0].value = data.cls ?? data.class ?? "";
+      selects[1].value = data.les ?? data.course ?? "";
+      selects[2].value = data.time ?? "";
+    }
 
-  for(let r=0; r<totalRows; r++){
-    for(let c=0; c<totalCols; c++){
-      const el = document.createElement('div');
-      el.className = "cell";
-
-      const isHeadRow = (r===0);
-      const isDayCol = (c===0);
-
-      if(isDayCol) el.classList.add('dayCol');
-      if(isHeadRow) el.classList.add('headRow');
-
-      if(c===totalCols-1) el.classList.add('lastCol');
-      if(r===totalRows-1) el.classList.add('lastRow');
-
-      if(r===0 && c===0){
-        el.textContent = "";
-      }else if(r===0 && c>0){
-        const i = c;
-        el.classList.add('muted','headCell');
-        if(portrait){
-          el.innerHTML = `<div>${lessonLabel(i, true)}</div>`;
-        }else{
-          el.innerHTML = `<div>${lessonLabel(i, false)}</div><span class="time">${timesByNo[i] || ""}</span>`;
-        }
-      }else if(r>0 && c===0){
-        const day = daysShown[r-1];
-        el.textContent = portrait ? dayShort(day) : day;
-        el.classList.add('muted');
-      }else{
-        const day = daysShown[r-1];
-        const no = c;
-        const row = getRowFor(schedule, day, no);
-
-        if(!row){
-          el.innerHTML = "";
-        }else{
-          const cls = (row.cls ?? "").toString().trim();
-          const les = (row.les ?? "").toString().trim();
-          const col = getCourseColor(les) || "var(--orange)";
-
-          // dikeyde daha kısa; yatayda daha okunur
-          const lesLabel = abbrLessonName(les, portrait);
-
-          el.innerHTML = `
-            <div class="demoLesson" style="color:${col}">
-              <div class="demoCls">${cls}</div>
-              <div class="demoLes">${lesLabel}</div>
-            </div>
-          `;
+    selects.forEach(s => s.onchange = () => {
+      if(s.classList.contains('tSel')){
+        let idx = timeOptions.indexOf(s.value);
+        let rows = [...progBody.querySelectorAll('.progRow')];
+        let startIdx = rows.indexOf(row);
+        for(let i = startIdx + 1; i < rows.length; i++){
+          idx++;
+          if(idx < timeOptions.length) rows[i].querySelector('.tSel').value = timeOptions[idx];
         }
       }
+      saveCurrentDay();
+    });
 
-      grid.appendChild(el);
+    progBody.appendChild(row);
+  };
+
+  function renumber(){
+    [...progBody.querySelectorAll('.lessonTag')].forEach((t,i)=>t.textContent = (i+1));
+  }
+
+  activeDaysGroup.addEventListener('change', () => {
+    // aktif günleri kaydet + selector yenile
+    const days = getActiveDaysFromUI();
+    saveJSON(LS_ACTIVE_DAYS_KEY, (days.length ? days : [...ALL_DAYS]));
+    updateDaySelector();
+  });
+
+  daySelector.onchange = () => loadSchedule(daySelector.value);
+
+  ['set_start','set_dur','set_break','set_lunch','set_lunch_no'].forEach(id=>{
+    document.getElementById(id).addEventListener('input', calculateTimes);
+  });
+
+  
+  const normClass = (v)=> (String(v||'').trim().toUpperCase());
+  const normCourse = (v)=> (String(v||'').trim());
+
+  const renderClassChips = () => {
+    const host = document.getElementById('classChipList');
+    if(!host) return;
+    const arr = [...new Set((classesList||[]).map(normClass).filter(Boolean))];
+    classesList = arr;
+    saveJSON(LS_CLASSES_KEY, classesList);
+
+    host.innerHTML = arr.map((c, i) => `
+      <div class="input" style="display:flex; align-items:center; gap:0.5rem; padding:0.2rem 0.55rem; font-size:0.75rem; white-space:nowrap;">
+        <b>${c}</b>
+        <span style="cursor:pointer; color:red; font-weight:900" data-cls-del="${i}" title="Sil">✕</span>
+      </div>
+    `).join('');
+
+    host.querySelectorAll('[data-cls-del]').forEach(sp=>{
+      sp.onclick = () => {
+        const idx = Number(sp.getAttribute('data-cls-del'));
+        classesList.splice(idx, 1);
+        saveJSON(LS_CLASSES_KEY, classesList);
+        renderClassChips();
+        refreshSelects();
+      };
+    });
+  };
+
+  const renderCourseChips = () => {
+    const host = document.getElementById('courseChipList');
+    if(!host) return;
+    const arr = [...new Set((coursesList||[]).map(normCourse).filter(Boolean))];
+    coursesList = arr;
+    saveJSON(LS_COURSES_KEY, coursesList);
+
+    
+    host.innerHTML = arr.map((d, i) => {
+      const col = (courseColors && courseColors[d]) ? courseColors[d] : "#7aa7ff";
+      return `
+      <div class="input" style="display:flex; align-items:center; gap:0.5rem; padding:0.2rem 0.55rem; font-size:0.75rem; white-space:nowrap;">
+        <span data-crs-color="${d}" title="Renk değiştir" style="width:14px;height:14px;border-radius:6px;background:${col};border:1px solid rgba(255,255,255,.25);display:inline-block;cursor:pointer;"></span>
+        <span>${d}</span>
+        <span style="cursor:pointer; color:red; font-weight:900" data-crs-del="${i}" title="Sil">✕</span>
+      </div>
+    `;
+    }).join('');
+
+
+    host.querySelectorAll('[data-crs-del]').forEach(sp=>{
+      sp.onclick = () => {
+        const idx = Number(sp.getAttribute('data-crs-del'));
+        const removed = coursesList[idx];
+        coursesList.splice(idx, 1);
+        saveJSON(LS_COURSES_KEY, coursesList);
+        try{ if(removed && courseColors){ delete courseColors[removed]; saveCourseColors(courseColors); } }catch(_){ }
+        renderCourseChips();
+        refreshSelects();
+        try{ const d=ACTIVE_DAYS[activeRealIndex]||ACTIVE_DAYS[0]; renderTable(d);}catch(_){}
+      };
+    });
+
+    // Renk değiştirme
+    const colorEdit = document.getElementById('courseColorEdit');
+    host.querySelectorAll('[data-crs-color]').forEach(sp=>{
+      sp.onclick = () => {
+        const name = sp.getAttribute('data-crs-color');
+        if(!name || !colorEdit) return;
+        const current = (courseColors && courseColors[name]) ? courseColors[name] : "#7aa7ff";
+        colorEdit.value = current;
+        colorEdit.onchange = () => {
+          const v = colorEdit.value;
+          courseColors[name] = v;
+          saveCourseColors(courseColors);
+          renderCourseChips();
+          refreshSelects();
+          try{ const d=ACTIVE_DAYS[activeRealIndex]||ACTIVE_DAYS[0]; renderTable(d);}catch(_){}
+        };
+        // aç
+        colorEdit.click();
+      };
+    });
+  };
+
+  // Ekle butonları
+  const addClassBtn = document.getElementById('addClassBtn');
+  if(addClassBtn){
+    addClassBtn.onclick = () => {
+      const c = normClass(document.getElementById('classOnlyInp')?.value);
+      if(!c) return;
+      if(!classesList.includes(c)) classesList.push(c);
+      saveJSON(LS_CLASSES_KEY, classesList);
+      if(document.getElementById('classOnlyInp')) document.getElementById('classOnlyInp').value = '';
+      renderClassChips();
+      refreshSelects();
+    };
+  }
+
+  const addCourseBtn = document.getElementById('addCourseBtn');
+  if(addCourseBtn){
+    addCourseBtn.onclick = () => {
+      const d = normCourse(document.getElementById('courseOnlyInp')?.value);
+      if(!d) return;
+      if(!coursesList.includes(d)) coursesList.push(d);
+      // renk kaydı
+      try{
+        const colInp = document.getElementById('courseColorInp');
+        const col = (colInp && colInp.value) ? colInp.value : '#7aa7ff';
+        courseColors[d] = col;
+        saveCourseColors(courseColors);
+      }catch(_){ }
+      saveJSON(LS_COURSES_KEY, coursesList);
+      if(document.getElementById('courseOnlyInp')) document.getElementById('courseOnlyInp').value = '';
+      renderCourseChips();
+      refreshSelects();
+      try{ const day=ACTIVE_DAYS[activeRealIndex]||ACTIVE_DAYS[0]; renderTable(day);}catch(_){ }
+    };
+  // Tema turuncusu kısayol butonu
+  const orangeBtn = document.getElementById('courseColorOrangeBtn');
+  const colorInp = document.getElementById('courseColorInp');
+  if(orangeBtn && colorInp){
+    orangeBtn.onclick = ()=>{
+      colorInp.value = '#ff7a00';
+    };
+  }
+
+  }
+
+
+  
+const refreshSelects = () => {
+    // Listeler + mevcut satırlarda seçili olan değerler (kaybolmasın)
+    const clsSet = new Set((classesList||[]).map(v=>String(v).trim().toUpperCase()).filter(Boolean));
+    const crsSet = new Set((coursesList||[]).map(v=>String(v).trim()).filter(Boolean));
+
+    progBody.querySelectorAll('.progRow').forEach(r => {
+      const sels = r.querySelectorAll('select');
+      const curCls = (sels[0]?.value || '').trim();
+      const curCrs = (sels[1]?.value || '').trim();
+      if(curCls) clsSet.add(curCls.toUpperCase());
+      if(curCrs) crsSet.add(curCrs);
+    });
+
+    const classes = [...clsSet];
+    const courses = [...crsSet];
+
+    progBody.querySelectorAll('.progRow').forEach(r => {
+      const sels = r.querySelectorAll('select');
+      const v0 = sels[0].value, v1 = sels[1].value, v2 = sels[2].value;
+      sels[0].innerHTML = '<option value="">Sınıf</option>' + classes.map(c=>`<option value="${c}">${c}</option>`).join('');
+      sels[1].innerHTML = '<option value="">Ders</option>' + courses.map(c=>`<option value="${c}">${c}</option>`).join('');
+      sels[0].value = v0; sels[1].value = v1; sels[2].value = v2;
+    });
+  };
+
+
+  document.getElementById('addRowBtn').onclick = () => { addRow(); saveCurrentDay(); };
+
+  document.getElementById('mainSaveBtn').onclick = () => {
+    // önce seçili gün kaydı
+    saveCurrentDay();
+    // aktif günler zaten change ile kaydoluyor; yine de garanti:
+    const days = getActiveDaysFromUI();
+    saveJSON(LS_ACTIVE_DAYS_KEY, (days.length ? days : [...ALL_DAYS]));
+
+    // anasayfayı da anında güncelle
+    updateActiveDays(loadJSON(LS_ACTIVE_DAYS_KEY, [...ALL_DAYS]));
+    setSchedule(readScheduleFromStorage());
+
+    showToast('Tüm ayarlar kaydedildi!');
+  };
+
+  // dışarı açılan init fonksiyonu
+  window.__settingsInit = function(){
+    calculateTimes();
+    renderClassChips();
+    renderCourseChips();
+    updateDaySelector();
+  };
+})();
+
+// ================== GLOBAL YAZI BOYUTU (TÜM SAYFALAR) ==================
+// Projede bir çok font-size px olduğu için sadece `html{font-size}` tüm ekranı etkilemiyordu.
+// Not: Daha önce zoom/transform ile tüm ekran ölçekleniyordu (çerçeve/tablolar da büyüyüp küçülüyordu).
+// İstenen: Sadece yazılar büyüsün/küçülsün, dış şerit ve yerleşim sabit kalsın.
+// Bu yüzden zoom/transform KULLANMIYORUZ; font-size'ı rem tabanlı hale getiriyoruz.
+function applyGlobalTextSizetSize(fsPx){
+  let px = parseFloat(String(fsPx || "14px").replace(/[^0-9.]/g, ""));
+  if(!isFinite(px) || px <= 0) px = 14;
+
+  // 14px = referans
+  let scale = px / 14;
+
+  // sadece 12–16 arası güvenli sınır (APK + Web için)
+  if(scale < 12/14) scale = 12/14;  // ≈12px
+  if(scale > 18/14) scale = 18/14;  // ≈18px
+
+  document.documentElement.style.setProperty("--fsScale", scale);
+}
+
+function initSettingsFromStorage(){
+  // tema + font boyutu
+
+  let fs = localStorage.getItem("dt_fs_base");
+if(!fs) fs = "14px";
+try{ if(fs && fs.trim().startsWith("\"")) fs = JSON.parse(fs); }catch(e){}
+
+// Eski kayıtlardan gelen değerleri güvenli aralığa yuvarla (12 / 14 / 16 / 18)
+const fsp = parseFloat(String(fs).replace(/[^0-9.]/g, "")) || 14;
+if(fsp <= 12) fs = "12px";
+else if(fsp >= 18) fs = "18px";
+else if(fsp >= 16) fs = "16px";
+else fs = "14px";
+
+localStorage.setItem("dt_fs_base", fs);
+document.documentElement.style.setProperty("--fs-base", fs);
+const fsSel = document.getElementById("fsSelect");
+if(fsSel) fsSel.value = fs;
+
+// tüm sayfalara uygula
+applyGlobalTextSizetSize(fs);
+
+  // aktif günleri UI'ya yansıt
+  const savedDays = loadJSON(LS_ACTIVE_DAYS_KEY, [...ALL_DAYS]);
+  const group = document.getElementById("activeDaysGroup");
+  if(group){
+    group.querySelectorAll('input[type="checkbox"]').forEach(cb=>{
+      const day = cb.getAttribute("data-day");
+      cb.checked = Array.isArray(savedDays) ? savedDays.includes(day) : true;
+    });
+  }
+
+  // saat görünümü (start/range)
+  const fmtSel = document.getElementById("timeFmtSel");
+  if(fmtSel){
+    fmtSel.value = getTimeFmt();
+    try{ applyTimeFmtClass(); }catch(_){}
+    fmtSel.onchange = ()=>{
+      const v = (fmtSel.value === "start") ? "start" : "range";
+      setTimeFmt(v);
+
+      // html class'ı anında uygula (font/biçim)
+      try{ applyTimeFmtClass(); }catch(_){}
+
+      // kayıtlı schedule saatlerini dönüştür + seçenek listesini güncelle
+      try{ if(window.__convertAllScheduleTimes) window.__convertAllScheduleTimes(v); }catch(_){ }
+      try{ calculateTimes(); }catch(_){}
+
+      // ✅ Ayarlar içindeki günlük program bölümünü kapatmadan anında yenile (scope sorununu aşmak için)
+      try{
+        if(typeof window.__settingsInit === "function"){
+          window.__settingsInit(); // calculateTimes + updateDaySelector + loadSchedule
+        }
+      }catch(_){}
+
+      // ✅ Anasayfa görünümü kapalı olsa bile, kapatınca doğru gelsin diye class zaten güncel.
+      // İstersen anında da güncellemek için sadece renderDays çağır (global ise)
+      try{ if(typeof renderDays === "function") renderDays(); }catch(_){}
+    };
+  }
+
+  // settings iç tabloları kur
+  if(window.__settingsInit) window.__settingsInit();
+}
+
+
+
+/* ================== NOTLAR (ders bazlı: Ödev + Not + Sınav Tarihi) ================== */
+let NOTES = loadJSON(LS_NOTES_KEY, []);
+if(!Array.isArray(NOTES)) NOTES = [];
+
+const nmBackdrop = document.getElementById("nmBackdrop");
+const nmClose = document.getElementById("nmClose");
+const nmBody = document.getElementById("nmBody");
+const notesBtn = document.querySelector(".notesBtn");
+
+let nmEditMode = false;         // Düzenle modu (ikonlar görünür)
+let nmEditingId = null;         // düzenlenen kayıt id
+
+function dayName(){
+  return ACTIVE_DAYS[activeRealIndex] || ACTIVE_DAYS[0];
+}
+function scheduleForDay(day){
+  return (SCHEDULE && SCHEDULE[day]) ? SCHEDULE[day] : [];
+}
+function makeLessonKey(row){
+  const cls = (row.cls||"").trim();
+  const les = (row.les||"").trim();
+  // IMPORTANT: key does NOT include time.
+  // This way, double periods (same lesson repeated) appear once in dropdown and share notes.
+  return (cls + "__" + les).replace(/\s+/g," ");
+}
+function lessonLabelFromKey(key){
+  const parts = (key||"").split("__");
+  const cls = parts[0] || "";
+  const les = parts[1] || "";
+  return (cls + " • " + les).trim();
+}
+function notesForDay(day){
+  return NOTES.filter(n => n.day === day);
+}
+
+// Programdaki derslerle eslesen notlari (notun girildigi gun fark etmeksizin) bulmak icin
+function lessonKeysForDay(day){
+  const rows = scheduleForDay(day) || [];
+  const keys = new Set();
+  rows.forEach(r=>{
+    const k = makeLessonKey(r);
+    if(k) keys.add(k);
+  });
+  return keys;
+}
+
+function lessonNotesForDay(day){
+  const keys = lessonKeysForDay(day);
+  return NOTES.filter(n => n && n.kind==='lesson' && n.lessonKey && keys.has(n.lessonKey));
+}
+
+function dayNotesForDay(day){
+  return NOTES.filter(n => n && n.kind==='day' && n.day===day);
+}
+
+function notesVisibleForDay(day){
+  // Ders notlari: o gun programinda bulunan derslerin notlari
+  // Gun notu: sadece o gunun kendi gun notu
+  return [...lessonNotesForDay(day), ...dayNotesForDay(day)];
+}
+function normalizeKinds(){
+  NOTES = NOTES.map(n => (n && !n.kind) ? ({...n, kind:"lesson"}) : n);
+}
+
+// migrate old lessonKey format that included time: cls__les__time -> cls__les
+function migrateLessonKeys(){
+  try{
+    let changed = false;
+    NOTES = NOTES.map(n => {
+      if(!n || (n.kind||'lesson')!=='lesson') return n;
+      const k = (n.lessonKey||'').toString();
+      const parts = k.split('__');
+      if(parts.length >= 3){
+        changed = true;
+        return {...n, lessonKey: (parts[0]||'').trim() + '__' + (parts[1]||'').trim()};
+      }
+      return n;
+    });
+    if(changed) saveJSON(LS_NOTES_KEY, NOTES);
+  }catch(_){ }
+}
+normalizeKinds();
+migrateLessonKeys();
+function dayNoteFor(day){
+  return NOTES.find(n => n.day===day && n.kind==="day") || null;
+}
+
+function notesExistForDay(day){
+  return notesVisibleForDay(day).length>0;
+}
+function refreshNotlarDot(day){
+  const dot = document.querySelector(".noteDot");
+  if(!dot) return;
+  dot.style.display = notesExistForDay(day) ? "inline-block" : "none";
+}
+function fmtDate(d){
+  if(!d) return "";
+  try{
+    const parts = d.split("-");
+    return parts[2] + "." + parts[1] + "." + parts[0];
+  }catch(e){ return d; }
+}
+function escapeHtml(s){
+  return (s||"").replace(/[&<>"']/g, (c)=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[c]));
+}
+
+// --- Long press helper (touch + mouse) ---
+function bindLongPress(el, onLongPress, ms=550){
+  if(!el) return;
+  let t=null, sx=0, sy=0, active=false;
+  const TH=12;
+  function clear(){ if(t){ clearTimeout(t); t=null; } active=false; }
+  function start(e){
+    // Notlar penceresi açıkken tablo etkileşimini engelle
+    if(document.body.classList.contains('nm-open')) return;
+    active=true;
+    const pt = (e.touches && e.touches[0]) || e;
+    sx = pt.clientX; sy = pt.clientY;
+    clearTimeout(t);
+    t=setTimeout(()=>{
+      t=null;
+      if(!active) return;
+      try{ onLongPress(e); }catch(_){ }
+    }, ms);
+  }
+  function move(e){
+    if(!t) return;
+    const pt = (e.touches && e.touches[0]) || e;
+    if(Math.abs(pt.clientX-sx)>TH || Math.abs(pt.clientY-sy)>TH){
+      clear();
     }
   }
+  function end(){ clear(); }
+
+  // Pointer Events (en stabil)
+  el.addEventListener('pointerdown', start, {passive:true, capture:true});
+  el.addEventListener('pointermove', move, {passive:true, capture:true});
+  el.addEventListener('pointerup', end, {passive:true, capture:true});
+  el.addEventListener('pointercancel', end, {passive:true, capture:true});
+
+  // Touch fallback
+  el.addEventListener('touchstart', start, {passive:true, capture:true});
+  el.addEventListener('touchmove', move, {passive:true, capture:true});
+  el.addEventListener('touchend', end, {passive:true, capture:true});
+  el.addEventListener('touchcancel', end, {passive:true, capture:true});
+
+  // Mouse fallback
+  el.addEventListener('mousedown', start, true);
+  el.addEventListener('mousemove', move, true);
+  el.addEventListener('mouseup', end, true);
+  el.addEventListener('mouseleave', end, true);
+
+  // Bazı tarayıcılarda uzun basınca menü çıkabiliyor
+  el.addEventListener('contextmenu', (ev)=>{ try{ ev.preventDefault(); }catch(_){ } }, true);
 }
 
-const backBtn = document.getElementById('backBtn');
-
-function syncRealOrientation(){
-  const isLand = window.matchMedia('(orientation: landscape)').matches;
-  document.body.classList.toggle('portrait', !isLand);
+// --- Tiny toast (no alert) ---
+function nmToast(msg){
+  try{
+    let t=document.getElementById('nmToast');
+    if(!t){
+      t=document.createElement('div');
+      t.id='nmToast';
+      t.style.cssText='position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:99999;background:rgba(0,0,0,.72);color:#fff;padding:10px 14px;border-radius:12px;font-size:13px;max-width:92vw;text-align:center;opacity:0;pointer-events:none;transition:opacity .2s ease';
+      document.body.appendChild(t);
+    }
+    t.textContent=msg||'';
+    t.style.opacity='1';
+    clearTimeout(t.__tm);
+    t.__tm=setTimeout(()=>{ t.style.opacity='0'; }, 1200);
+  }catch(_){ }
 }
-window.addEventListener('orientationchange', ()=>{ syncRealOrientation(); renderGrid(); });
-window.addEventListener('resize', ()=>{ syncRealOrientation(); renderGrid(); });
 
-backBtn.addEventListener('click', ()=>{
-  if(history.length > 1) history.back();
-  else window.location.href = "anasayfa.html";
-});
+let nmMode = 'view'; // 'view' | 'lesson' | 'day'
+let nmActiveLessonKey = '';
 
-syncRealOrientation();
-renderGrid();
+function openNotesView(){
+  const d = dayName();
+  nmMode='view';
+  nmActiveLessonKey='';
+  renderNotesUI(d, {mode:'view'});
+  document.body.classList.add('nm-open');
+  nmBackdrop.classList.add('show');
+  nmBackdrop.setAttribute('aria-hidden','false');
+  try{ setupNotesSwipe(); }catch(_){ }
+}
+function openLessonEditor(day, lessonKey){
+  nmMode='lesson';
+  nmActiveLessonKey=lessonKey||'';
+  renderNotesUI(day, {mode:'lesson', lessonKey:nmActiveLessonKey});
+  document.body.classList.add('nm-open');
+  nmBackdrop.classList.add('show');
+  nmBackdrop.setAttribute('aria-hidden','false');
+  try{ setupNotesSwipe(); }catch(_){ }
+}
+function openDayEditor(day){
+  nmMode='day';
+  nmActiveLessonKey='';
+  renderNotesUI(day, {mode:'day'});
+  document.body.classList.add('nm-open');
+  nmBackdrop.classList.add('show');
+  nmBackdrop.setAttribute('aria-hidden','false');
+  try{ setupNotesSwipe(); }catch(_){ }
+}
+
+function renderNotesUI(day, opts){
+  opts = opts || {};
+  const mode = opts.mode || 'view';
+  const rows = scheduleForDay(day);
+  const lessonNotes = notesVisibleForDay(day).filter(n => (n.kind||'lesson')==='lesson');
+  const dayNote = dayNoteFor(day);
+
+  // helpers for labels (no need to show time in cards)
+  function lessonShortLabelFromKey(key){
+    const parts = (key||"").split("__");
+    const cls = (parts[0]||"").trim();
+    const les = (parts[1]||"").trim();
+    return (cls && les) ? (cls + " - " + les) : (cls + les).trim();
+  }
+  function trDateOnly(ts){
+    try{ return new Date(ts||Date.now()).toLocaleDateString('tr-TR'); }catch(_){ return ''; }
+  }
+
+  // Build view-only sections
+  const odevItems = lessonNotes.filter(n => (n.odev||"").trim()).sort((a,b)=>(b.ts||0)-(a.ts||0));
+  const noteItems = lessonNotes.filter(n => (n.note||"").trim()).sort((a,b)=>(b.ts||0)-(a.ts||0));
+  const examItems = lessonNotes.filter(n => (n.examDate||"").trim()).sort((a,b)=>(b.ts||0)-(a.ts||0));
+
+  // Options for lesson select (for editor mode)
+  // Show ONLY today's lessons, WITHOUT time, and de-duplicate double periods.
+  const seen = new Set();
+  const options = rows.map(r=>{
+    const key = makeLessonKey(r); // cls__les (no time)
+    if(!key.trim()) return '';
+    if(seen.has(key)) return '';
+    seen.add(key);
+    const label = ((r.cls||"").trim() + " - " + (r.les||"").trim()).trim();
+    return `<option value="${key}">${escapeHtml(label)}</option>`;
+  }).filter(Boolean).join("");
+
+  const hintTopHTML = `
+    <div class="nmHintTop">Not eklemek için ders veya gün ismine basılı tutun.</div>`;
+
+  if(mode === 'view'){
+    nmBody.innerHTML = `
+      ${hintTopHTML}
+      <div class="nmDayCard" style="padding:12px;">
+        <div class="nmFieldTitle" style="margin-bottom:8px;">${day} Gününün Notu</div>
+        <div class="nmDayPreview" style="min-height:44px; white-space:pre-wrap; color:#f1f1f1; opacity:.92; padding:10px 12px; border-radius:12px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.10);">
+          ${dayNote && ((dayNote.dayText||dayNote.text||"").trim()) ? escapeHtml((dayNote.dayText||dayNote.text||"").trim()) : '<span style="opacity:.65">(Gün notu yok)</span>'}
+        </div>
+      </div>
+
+      <div class="nmListTitle" style="margin-top:12px; color:var(--orange);">ÖDEV</div>
+      <div id="nmOdevList"></div>
+
+      <div class="nmListTitle" style="margin-top:12px; color:var(--orange);">NOT</div>
+      <div id="nmNoteList"></div>
+
+      <div class="nmListTitle" style="margin-top:12px; color:var(--orange);">SINAV</div>
+      <div id="nmExamList"></div>
+
+      <div class="nmActions" style="margin-top:14px;">
+        <button class="nmBtn" id="nmClearBtn" style="margin-left:auto;">KAPAT</button>
+      </div>
+    `;
+
+    const mkItem = (n, kind)=>{
+      const wrap = document.createElement('div');
+      wrap.className='nmItem';
+      const title = lessonShortLabelFromKey(n.lessonKey||"");
+      let meta = '';
+      if(kind==='odev') meta = `${escapeHtml(n.odev||"")}`;
+      if(kind==='note') meta = `${escapeHtml(n.note||"")}`;
+      if(kind==='exam'){
+        const dt = n.examDate ? fmtDate(n.examDate) : '';
+        const extra = (n.note||"").trim() ? (" • " + escapeHtml(n.note)) : '';
+        meta = `<b>Sınav:</b> ${escapeHtml(dt)}${extra}`;
+      }
+      wrap.innerHTML = `
+        
+        <div class="nmText">${escapeHtml(title||'')}</div>
+        <div class="nmMeta">${meta}</div>
+        <div class="nmMeta">${escapeHtml(trDateOnly(n.ts))}</div>
+      `;
+      // tıkla -> bu kaydı düzenleme (ders editörü)
+      wrap.onclick = ()=>{
+        openLessonEditor(day, n.lessonKey||"");
+        // editöre geçince kaydı forma yükle
+        setTimeout(()=>{
+          try{ window.__nmLoadById && window.__nmLoadById(n.id); }catch(_){ }
+        }, 0);
+      };
+      return wrap;
+    };
+
+    const odevHost=document.getElementById('nmOdevList');
+    const noteHost=document.getElementById('nmNoteList');
+    const examHost=document.getElementById('nmExamList');
+
+    if(odevItems.length===0) odevHost.innerHTML = `<div class="nmEmpty">Kayıt yok.</div>`;
+    else odevItems.forEach(n=>odevHost.appendChild(mkItem(n,'odev')));
+
+    if(noteItems.length===0) noteHost.innerHTML = `<div class="nmEmpty">Kayıt yok.</div>`;
+    else noteItems.forEach(n=>noteHost.appendChild(mkItem(n,'note')));
+
+    if(examItems.length===0) examHost.innerHTML = `<div class="nmEmpty">Kayıt yok.</div>`;
+    else examItems.forEach(n=>examHost.appendChild(mkItem(n,'exam')));
+
+    document.getElementById('nmClearBtn').onclick = closeNotes;
+    return;
+  }
+
+  // --- Editor modes (lesson/day) ---
+  const selectedLessonKey = (mode==='lesson') ? (opts.lessonKey || nmActiveLessonKey || '') : '';
+
+  nmBody.innerHTML = `
+    ${mode==='day' ? `
+      <div class="nmDayCard">
+        <div class="nmFieldTitle">${day} Gününün Notu</div>
+        <textarea class="nmInput nmTextArea" id="nmDayNote" placeholder="Günün genel notu / hatırlatma..."></textarea>
+        <div class="nmDayRow" style="display:flex; gap:10px;">
+          <button class="nmBtn primary" id="nmDaySave">KAYDET</button>
+          <button class="nmBtn" id="nmDayClear">SİL</button>
+          <button class="nmBtn" id="nmClearBtn" style="margin-left:auto;">KAPAT</button>
+        </div>
+      </div>
+    ` : ''}
+
+    ${mode==='lesson' ? `
+      <div class="nmForm">
+        <div class="nmFieldTitle" style="margin-bottom:8px;">Ders Notu</div>
+        <select class="nmSelect" id="nmLesson">${options || `<option value="">(Bu gün için ders yok)</option>`}</select>
+
+        <div class="nmFieldTitle">ÖDEV</div>
+        <div class="nmInputRow"><textarea class="nmInput nmTextArea" id="nmOdev" placeholder="Ödev açıklaması..."></textarea></div>
+
+        <div class="nmFieldTitle">NOT</div>
+        <div class="nmInputRow"><textarea class="nmInput nmTextArea" id="nmNote" placeholder="Not açıklaması..."></textarea></div>
+
+        <div class="nmFieldTitle">SINAV TARİHİ</div>
+        <div class="nmInputRow"><input class="nmInput" id="nmExamDate" type="date" /></div>
+
+        <div class="nmActions">
+          <button class="nmBtn primary" id="nmSaveBtn">KAYDET</button>
+          <button class="nmBtn ghost" id="nmEditBtn">DÜZENLE</button>
+          <button class="nmBtn" id="nmClearBtn" style="margin-left:auto;">KAPAT</button>
+        </div>
+      </div>
+
+      <div class="nmListTitle">Kayıtlar</div>
+      <div id="nmList"></div>
+    ` : ''}
+  `;
+
+  // Day editor wiring
+  if(mode==='day'){
+    const nmDayNoteEl = document.getElementById('nmDayNote');
+    const nmDaySave = document.getElementById('nmDaySave');
+    const nmDayClear = document.getElementById('nmDayClear');
+    const dn = dayNoteFor(day);
+    if(nmDayNoteEl) nmDayNoteEl.value = dn ? (dn.dayText || dn.text || '') : '';
+
+    nmDaySave.onclick = ()=>{
+      const txt=(nmDayNoteEl.value||'').trim();
+      if(!txt){
+        NOTES = NOTES.filter(n => !(n.day===day && n.kind==='day'));
+        saveJSON(LS_NOTES_KEY, NOTES);
+        refreshNotlarDot(day);
+        nmToast('Silindi.');
+        closeNotes();
+        return;
+      }
+      const existing = dayNoteFor(day);
+      if(existing){
+        NOTES = NOTES.map(n => (n.id===existing.id) ? ({...n, kind:'day', dayText:txt, ts:Date.now()}) : n);
+      }else{
+        const id='d_'+Math.random().toString(16).slice(2)+'_'+Date.now();
+        NOTES.push({id, day, kind:'day', dayText:txt, ts:Date.now()});
+      }
+      saveJSON(LS_NOTES_KEY, NOTES);
+      refreshNotlarDot(day);
+      nmToast('Kaydedildi.');
+      closeNotes();
+    };
+
+    nmDayClear.onclick = ()=>{
+      NOTES = NOTES.filter(n => !(n.day===day && n.kind==='day'));
+      saveJSON(LS_NOTES_KEY, NOTES);
+      if(nmDayNoteEl) nmDayNoteEl.value='';
+      refreshNotlarDot(day);
+      nmToast('Silindi.');
+      closeNotes();
+    };
+
+    document.getElementById('nmClearBtn').onclick = closeNotes;
+    return;
+  }
+
+  // Lesson editor wiring
+  const nmLesson = document.getElementById('nmLesson');
+  const nmOdev = document.getElementById('nmOdev');
+  const nmNote = document.getElementById('nmNote');
+  const nmExamDate = document.getElementById('nmExamDate');
+  const nmListEl = document.getElementById('nmList');
+
+  // default selection
+  if(nmLesson){
+    nmLesson.value = selectedLessonKey || (nmLesson.options[0] ? nmLesson.options[0].value : '');
+  }
+
+  const list = lessonNotes.slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+
+  function loadNoteToForm(n){
+    nmEditingId = n.id;
+    if(nmLesson) nmLesson.value = n.lessonKey || (nmLesson.value||'');
+    nmOdev.value = n.odev || '';
+    nmNote.value = n.note || '';
+    nmExamDate.value = n.examDate || '';
+    document.getElementById('nmSaveBtn').textContent = 'GÜNCELLE';
+    try{ nmOdev.focus(); }catch(_){ }
+  }
+
+  // expose loader for view-mode click
+  window.__nmLoadById = (id)=>{
+    const n = NOTES.find(x=>x.id===id);
+    if(n) loadNoteToForm(n);
+  };
+
+  function renderList(){
+    nmListEl.innerHTML='';
+    if(list.length===0){
+      nmListEl.innerHTML = `<div class="nmEmpty">${day} için henüz kayıt yok.</div>`;
+      return;
+    }
+    list.forEach(n=>{
+      const wrap=document.createElement('div');
+      wrap.className='nmItem';
+      const title = lessonShortLabelFromKey(n.lessonKey||'');
+      const parts=[];
+      if(n.odev) parts.push(`${escapeHtml(n.odev)}`);
+      if(n.note) parts.push(`${escapeHtml(n.note)}`);
+      if(n.examDate) parts.push(`<b>Sınav:</b> ${escapeHtml(fmtDate(n.examDate))}`);
+      wrap.innerHTML = `
+        
+        <div class="nmText">${escapeHtml(title)}</div>
+        <div class="nmMeta">${parts.join(' • ')}</div>
+        <div class="nmMeta">${escapeHtml(trDateOnly(n.ts))}</div>
+        <div class="nmIcons" style="display:${nmEditMode ? 'flex' : 'none'};">
+          <button class="nmIconBtn" data-act="edit" title="Düzenle">✎</button>
+          <button class="nmIconBtn danger" data-act="del" title="Sil">🗑</button>
+        </div>
+      `;
+
+      wrap.querySelectorAll('[data-act]').forEach(btn=>{
+        btn.onclick = ()=>{
+          const act=btn.getAttribute('data-act');
+          if(act==='edit'){ loadNoteToForm(n); }
+          if(act==='del'){
+            NOTES = NOTES.filter(x=>x.id!==n.id);
+            saveJSON(LS_NOTES_KEY, NOTES);
+            const fresh = notesVisibleForDay(day).filter(x => (x.kind||'lesson')==='lesson').slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+            list.length=0; fresh.forEach(x=>list.append(x));
+            renderList();
+            refreshNotlarDot(day);
+            nmToast('Silindi.');
+          }
+        };
+      });
+
+      wrap.onclick = (ev)=>{
+        if(!nmEditMode) return;
+        if(ev && ev.target && ev.target.closest && ev.target.closest('.nmIconBtn')) return;
+        loadNoteToForm(n);
+      };
+
+      nmListEl.appendChild(wrap);
+    });
+  }
+
+  document.getElementById('nmEditBtn').onclick = ()=>{
+    nmEditMode = !nmEditMode;
+    document.getElementById('nmEditBtn').textContent = nmEditMode ? 'BİTTİ' : 'DÜZENLE';
+    nmListEl.querySelectorAll('.nmIcons').forEach(el=>{ el.style.display = nmEditMode ? 'flex' : 'none'; });
+  };
+
+  document.getElementById('nmClearBtn').onclick = closeNotes;
+
+  document.getElementById('nmSaveBtn').onclick = ()=>{
+    const lessonKey=(nmLesson.value||'').trim();
+    if(!lessonKey){ nmToast('Ders seçin.'); return; }
+    const odev=(nmOdev.value||'').trim();
+    const note=(nmNote.value||'').trim();
+    const examDate=(nmExamDate.value||'').trim();
+    if(!odev && !note && !examDate){ nmToast('En az bir alan doldurun.'); return; }
+
+    if(nmEditingId){
+      NOTES = NOTES.map(x => x.id===nmEditingId ? ({...x, kind:'lesson', day, lessonKey, odev, note, examDate, ts:Date.now()}) : x);
+      nmEditingId=null;
+      document.getElementById('nmSaveBtn').textContent='KAYDET';
+    }else{
+      const id='n_'+Math.random().toString(16).slice(2)+'_'+Date.now();
+      NOTES.push({id, day, kind:'lesson', lessonKey, odev, note, examDate, ts:Date.now()});
+    }
+
+    saveJSON(LS_NOTES_KEY, NOTES);
+    const fresh = notesVisibleForDay(day).filter(x => (x.kind||'lesson')==='lesson').slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+    list.length=0; fresh.forEach(x=>list.append(x));
+    renderList();
+    refreshNotlarDot(day);
+
+    // form reset
+    nmOdev.value=''; nmNote.value=''; nmExamDate.value='';
+    nmToast('Kaydedildi.');
+  };
+
+  // preselect lesson if provided
+  if(selectedLessonKey){
+    try{ nmLesson.value = selectedLessonKey; }catch(_){ }
+  }
+
+  renderList();
+}
+
+function openNotes(){
+  openNotesView();
+}
+function closeNotes(){
+  try{
+    nmBackdrop.classList.remove("show");
+    nmBackdrop.setAttribute("aria-hidden","true");
+  }catch(_){}
+
+  // kilitlenmeyi önle: body sınıfını mutlaka kaldır
+  document.body.classList.remove("nm-open");
+
+  nmEditMode = false;
+  nmEditingId = null;
+
+  // odak/scroll güvenliği
+  try{
+    const el = document.activeElement;
+    if(el && typeof el.blur === "function") el.blur();
+  }catch(_){}
+}
+
+let __nmSwipeBound = false;
+function setupNotesSwipe(){
+  if(__nmSwipeBound) return;
+  const backdrop = document.querySelector('.nmBackdrop');
+  const modal = document.querySelector('.nmModal') || document.getElementById('nmModal');
+  const host = modal || backdrop;
+  if(!host) return;
+
+  let sx=0, sy=0, tracking=false;
+  const CLOSE_DY = 150; // daha sert cekis (kapanma esigi)
+  const MAX_DX = 80;
+
+  function point(e){
+    const t = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]) || e;
+    return {x:t.clientX, y:t.clientY};
+  }
+
+  host.style.touchAction = "pan-y";
+
+  host.addEventListener('touchstart', (e)=>{
+    if(!document.body.classList.contains('nm-open')) return;
+    const p = point(e);
+    sx=p.x; sy=p.y;
+    tracking=true;
+  }, {passive:true});
+
+  host.addEventListener('touchend', (e)=>{
+    if(!tracking) return;
+    tracking=false;
+
+    if(!document.body.classList.contains('nm-open')) return;
+
+    const p = point(e);
+    const dx = p.x - sx;
+    const dy = p.y - sy;
+
+    if(dy > CLOSE_DY && Math.abs(dx) < MAX_DX && dy > Math.abs(dx)*1.3){
+      const body = document.querySelector('.nmBody');
+      const atTop = !body || body.scrollTop <= 2;
+      if(atTop){
+        try{ closeNotes(); }catch(_){}
+      }
+    }
+  }, {passive:true});
+
+  __nmSwipeBound = true;
+}
+
+if(notesBtn) notesBtn.addEventListener("click", openNotesView);
+if(nmClose) if(nmClose) nmClose.addEventListener("click", closeNotes);
+if(nmBackdrop) nmBackdrop.addEventListener("click", (e)=>{ if(e.target === nmBackdrop) closeNotes(); });
+
+/* ===== Anasayfa: alt tabloyu sağa-sola çekerek gün değiştir (swipe) ===== */
+(function(){
+  const target = document.querySelector('.tblCard'); // alt tablo
+  const home = document.getElementById('homeView');
+  const el = target || home;
+  if(!el) return;
+
+  let sx=0, sy=0, tracking=false;
+  const TH = 38;   // px
+  const MAXY = 60; // px
+
+  function point(e){
+    const t = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]) || e;
+    return {x:t.clientX, y:t.clientY};
+  }
+
+  // 🔁 Devirdaim (circular / infinite wrap): hafta bitince bile aynı yönde kaymaya devam etsin
+  function stepDay(step, smooth){
+    if(typeof getClosestToCenter !== "function" || typeof scrollToVirtualIndex !== "function") return false;
+    const info = getClosestToCenter();
+    if(!info) return false;
+
+    const len = ACTIVE_DAYS.length;
+    const curReal = Number(info.realIndex);
+    const curCopy = Number(info.copy);
+
+    const nextReal = (curReal + step + len) % len;
+
+    // yön tutarlılığı:
+    //  - sonraki (step=+1): son günden ilk güne geçerken bir SONRAKİ kopyaya (sağa) atla
+    //  - önceki (step=-1): ilk günden son güne geçerken bir ÖNCEKİ kopyaya (sola) atla
+    let targetCopy = curCopy;
+    if(step === 1 && curReal === len-1 && nextReal === 0) targetCopy = curCopy + 1;
+    if(step === -1 && curReal === 0 && nextReal === len-1) targetCopy = curCopy - 1;
+
+    let target = targetCopy * len + nextReal;
+    if(!scroller.children[target]) target = virtualIndexFor(MID_COPY, nextReal);
+
+    markActiveByRealIndex(nextReal);
+    scrollToVirtualIndex(target, smooth);
+    return true;
+  }
+
+  function start(e){
+    if(document.body.classList.contains('nm-open')) return;
+    if(document.body.classList.contains('settings-open')) return;
+    const p = point(e);
+    sx = p.x; sy = p.y;
+    tracking = true;
+  }
+
+  function move(e){
+    if(!tracking) return;
+    const p = point(e);
+    const dx = p.x - sx;
+    const dy = p.y - sy;
+    if(Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10){
+      e.preventDefault();
+    }
+  }
+
+  function end(e){
+    if(!tracking) return;
+    tracking = false;
+
+    const p = point(e);
+    const dx = p.x - sx;
+    const dy = p.y - sy;
+
+    if(Math.abs(dy) > MAXY) return;
+    if(Math.abs(dx) < TH) return;
+
+    const step = (dx < 0) ? 1 : -1; // sola: sonraki, sağa: önceki
+
+    // öncelik: yönü koruyan devirdaim geçişi
+    if(stepDay(step, true)) return;
+
+    // fallback: butonları tıkla
+    const btns = document.querySelectorAll(".dayBtn");
+    const active = document.querySelector(".dayBtn.active");
+    if(btns.length && active){
+      const idx = Array.from(btns).indexOf(active);
+      const ni = (idx + step + btns.length) % btns.length;
+      btns[ni].click();
+    }
+  }
+
+  el.style.touchAction = "pan-y";
+  el.addEventListener("touchstart", start, {passive:true});
+  el.addEventListener("touchmove", move, {passive:false});
+  el.addEventListener("touchend", end, {passive:true});
+
+  // desktop drag
+  el.addEventListener("mousedown", (e)=> start(e));
+  window.addEventListener("mousemove", (e)=>{ if(tracking) move(e); });
+  window.addEventListener("mouseup", (e)=>{ if(tracking) end(e); });
+})();
+
+/* ================== BAŞLAT ================== */
+activeRealIndex = getTodayIndex();
+renderDays();
+
+// Haftalık sayfa aç/kapat
+btnWeekly.addEventListener("click", ()=>{ location.href = "haftalik.html"; });
+
+</script>
+<script>
+// Abbreviate common Turkish lesson words to fit single line
+(function(){
+  const map = [
+    [/Mesl.\s+Arp./gi, "Mesl. Arp."],
+    [/Kur'an-ı\s+Kerim/gi, "Kuran"],
+    [/Temel\s+Dini\s+Bilgiler/gi, "TDB"],
+    [/Arp./gi, "Arp."],
+    [/Bilgiler/gi, "Bilg."],
+    [/Mesl./gi, "Mesl."],
+    [/Dini/gi, "Din."],
+    [/Bilimler/gi, "Bil."],
+    [/Edebiyat/gi, "Edb."],
+    [/Matematik/gi, "Mat."],
+    [/Fizik/gi, "Fzk."],
+    [/Kimya/gi, "Kmy."],
+    [/Biyoloji/gi, "Biy."],
+    [/Coğrafya/gi, "Cof."],
+    [/Tarih/gi, "Trh."]
+  ];
+  const nodes = document.querySelectorAll('.weekly-table td, .weekly-table .lesson-name');
+  nodes.forEach(n=>{
+    let t = n.textContent;
+    map.forEach(([re, rep])=>{ t = t.replace(re, rep); });
+    n.textContent = t;
+  });
+})();
+</script>
+<script>
+// Haftalık butonu kalsın: yeni Haftalık sayfayı buraya bağlayacağız.
+(function(){
+  const btn = document.getElementById('btnWeekly');
+  if(btn){
+    btn.addEventListener('click', function(){
+      /* Haftalık sayfa kaldırıldı. Yeni haftalık sayfa buraya bağlanacak. */
+    });
+  }
+})();
+</script>
+<script>
+/* ===== Anasayfa: Tüm sayfadan swipe => Gün şeridini kaydır (private fonksiyonlara bağlı değil) =====
+   Not: h420'de gün değişimi zaten "daysScroll" yatay kayınca gerçekleşiyor.
+   Biz burada sadece daysScroll'u bir kart kadar sağ/sol kaydırıyoruz.
+*/
+(function(){
+  const scroller = document.getElementById("daysScroll") || document.querySelector(".daysStrip") || document.querySelector(".days-scroll");
+  if(!scroller) return;
+
+  function homeActive(){
+    return !document.body.classList.contains('settings-open')
+        && !document.body.classList.contains('weekly-open')
+        && !document.body.classList.contains('nm-open');
+  }
+  function ignore(t){
+    if(!t || !t.closest) return false;
+    if(t.closest("button,a,input,select,textarea,label")) return true;
+    if(t.closest("#settingsView") || t.closest("#weeklyView")) return true;
+    return false;
+  }
+  function pt(e){
+    const tt = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]) || e;
+    return {x: tt.clientX, y: tt.clientY};
+  }
+  function stepPx(){
+    const first = scroller.children && scroller.children[0];
+    if(!first) return 120;
+    const r = first.getBoundingClientRect();
+    // margin/gap tahmini: komşu eleman mesafesinden
+    const second = scroller.children[1];
+    if(second){
+      const r2 = second.getBoundingClientRect();
+      const gap = Math.max(0, (r2.left - r.right));
+      return r.width + gap;
+    }
+    return r.width;
+  }
+  function nudge(dir){ // dir: +1 right, -1 left
+    const px = stepPx() * dir;
+    scroller.scrollBy({left: px, behavior: "smooth"});
+  }
+
+  let sx=0, sy=0, down=false, locked=false, horiz=false;
+  const TH=28, LOCK=10, MAXY=220;
+
+  function start(e){
+    if(!homeActive()) return;
+    if(ignore(e.target)) return;
+    const p=pt(e);
+    sx=p.x; sy=p.y;
+    down=true; locked=false; horiz=false;
+  }
+  function move(e){
+    if(!down) return;
+    const p=pt(e);
+    const dx=p.x-sx, dy=p.y-sy;
+    if(!locked && (Math.abs(dx)>LOCK || Math.abs(dy)>LOCK)){
+      locked=true; horiz = Math.abs(dx) >= Math.abs(dy);
+    }
+    if(horiz && e.cancelable) e.preventDefault();
+  }
+  function end(e){
+    if(!down) return;
+    down=false;
+    const p=pt(e);
+    const dx=p.x-sx, dy=p.y-sy;
+    if(Math.abs(dy)>MAXY) return;
+    if(Math.abs(dx)<TH) return;
+    if(dx<0) nudge(+1); // sola sürükle -> sağa kaydır -> sonraki gün
+    else nudge(-1);     // sağa sürükle -> sola kaydır -> önceki gün
+  }
+
+  // Document capture: her yerden yakala
+  document.addEventListener("touchstart", start, {passive:true, capture:true});
+  document.addEventListener("touchmove",  move,  {passive:false, capture:true});
+  document.addEventListener("touchend",   end,   {passive:true, capture:true});
+  document.addEventListener("touchcancel",end,   {passive:true, capture:true});
+
+  document.addEventListener("mousedown", start, {capture:true});
+  document.addEventListener("mousemove", (e)=>{ if(down) move(e); }, {capture:true});
+  document.addEventListener("mouseup", end, {capture:true});
+})();
+</script>
+
+<style>
+  .appToast{
+    position: fixed;
+    left: 50%;
+    bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%) translateY(12px);
+    background: rgba(15,18,24,0.92);
+    color: #fff;
+    padding: 12px 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,122,0,0.35);
+    box-shadow: 0 14px 30px rgba(0,0,0,0.45);
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    z-index: 999999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .18s ease, transform .18s ease;
+    max-width: min(520px, calc(100vw - 28px));
+    text-align: center;
+  }
+  .appToast.show{
+    opacity: 1;
+    transform: translateX(-50%) translateY(0px);
+  }
+
+/* === GÜNLÜK TABLO: DERS ALANI DAHA VERİMLİ (SABİT FONT + TAŞAN KES) === */
+
+/* === HAFTALIK TABLO: LACİVERT ZEMİN + TURUNCU BAŞLIKLAR + ÇİFT ÇİZGİ AYIRICI === */
+:root{
+  --weeklyBg0: rgba(10,18,40,0.86);
+  --weeklyBg1: rgba(12,22,48,0.62);
+  --weeklyHdr: rgba(18,28,56,0.88);
+  --weeklyLine: rgba(255,255,255,0.16);
+  --weeklyLineStrong: rgba(255,255,255,0.34);
+}
+:root{
+  --fsScale: 1;
+}
+#weeklyView, .weeklyWrap{
+  background: radial-gradient(1200px 600px at 30% 0%, rgba(255,122,0,0.10), transparent 55%),
+              linear-gradient(180deg, var(--weeklyBg0), var(--weeklyBg1));
+}
+.weeklyTableWrapper{
+  background: rgba(8,14,30,0.55) !important;
+}
+.weeklyTable{
+  background: transparent !important;
+}
+.weeklyTable th, .weeklyTable td{
+  background: rgba(10,18,40,0.48) !important;
+  border-color: var(--weeklyLine) !important;
+}
+/* Üst satır (ders başlıkları) */
+.weeklyTable thead th{
+  background: var(--weeklyHdr) !important;
+  border-bottom: 3px double var(--weeklyLineStrong) !important;
+}
+/* Sol sütun (günler) */
+.weeklyTable th.dayHead{
+  background: var(--weeklyHdr) !important;
+  font-weight: 800 !important;
+  border-right: 3px double var(--weeklyLineStrong) !important;
+}
+/* Ders başlığı (1. Ders gibi) turuncu */
+.weeklyTable thead th .thNo{
+  color: var(--orange) !important;
+  font-weight: 900 !important;
+}
+/* Hücre içindeki sınıf adı turuncu */
+.weeklyTable .weeklyCls{
+  color: var(--orange) !important;
+  font-weight: 900 !important;
+}
+/* Boş hücrelerde ortadaki kısa çizgi yok; içerik zaten boş bırakıldı */
+.weeklyTable .emptyTd{
+  color: transparent !important;
+  text-shadow: none !important;
+}
+
+.tblRow{
+  /* Daha fazla alanı DERS'e ver: SINIF ve SAAT biraz daralsın */
+  grid-template-columns: 34px 70px 1fr 86px !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  overflow: visible !important;
+}
+
+@media (max-width: 420px){
+  .tblRow{ grid-template-columns: 32px 64px 1fr 78px !important; }
+}
+/* sadece satır içi hizayı korumak için ilk/son hücrelere küçük iç boşluk */
+.tblNo{ padding-left: 12px !important; }
+.tblTime{ padding-right: 0 !important; justify-self: end !important; }
+
+
+.tblCls{ color:#ffffff !important; font-weight:800 !important; }
+.tblLes{ color:#ffffff !important; font-weight:800 !important; }
+.tblTime{
+  color: rgba(210,220,235,0.68) !important;
+  font-weight: 800 !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+  font-variant-numeric: tabular-nums !important;
+  letter-spacing: .06em !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  text-align: right !important;
+}
+.tblLes{
+  font-size: 14px !important;
+  line-height: 1.2 !important;
+  /* Ders ismini kısaltma yapma: gerekiyorsa satır atsın */
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+
+.lesson-time {
+  font-size: 0.85em;
+  color: #9aa3ad;
+  white-space: nowrap;
+  text-align: right;
+}
+
+
+/* === FIX13: Sadece YATAYDA görünür yüksekliğe göre sığdır (turuncu şerit dışta kalsın) === */
+:root{ --vh: 1vh; }
+@media (orientation: landscape){
+  /* appBorder zaten turuncu çerçeve; yüksekliği gerçek görünür alana göre ayarla */
+  .appBorder{
+    height: calc((var(--vh) * 100) - 24px);
+    min-height: calc((var(--vh) * 100) - 24px);
+  }
+  /* Haftalık görünüm içeride taşmasın */
+  #weeklyView .pad{
+    max-height: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  #weeklyView .weeklyTableWrapper{
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  #weeklyGrid{ min-height: 0; }
+}
+
+</style>
+
+<script>
+  // Basit toast (alert yerine)
+  window.showToast = function(msg, ms=1400){
+    let el = document.getElementById('appToast');
+    if(!el){
+      el = document.createElement('div');
+      el.id = 'appToast';
+      el.className = 'appToast';
+      document.body.appendChild(el);
+    }
+    el.textContent = String(msg || '');
+    el.classList.add('show');
+    clearTimeout(el.__t1);
+    clearTimeout(el.__t2);
+    el.__t1 = setTimeout(()=> el.classList.remove('show'), ms);
+    el.__t2 = setTimeout(()=> { /* keep node for reuse */ }, ms + 220);
+  };
+
+
+/* ================== LONG PRESS + DERS NOKTASI (h461 - NOTES değişkeniyle) ================== */
+(function(){
+  function norm(s){ return (s||"").toString().trim().replace(/\s+/g," "); }
+  function pairKey(cls, les){ return norm(cls) + "||" + norm(les); }
+  function pairKeyFromLessonKey(lk){
+    const p = (lk||"").split("__");
+    return pairKey(p[0]||"", p[1]||"");
+  }
+  function hasAnyLessonField(n){
+    return !!(norm(n.odev) || norm(n.note) || norm(n.examDate));
+  }
+  function getNotesArray(){
+    try{
+      if(typeof NOTES !== "undefined" && Array.isArray(NOTES)) return NOTES;
+    }catch(_){}
+    return (Array.isArray(window.NOTES) ? window.NOTES : []);
+  }
+  function notePairSet(){
+    const set = new Set();
+    const list = getNotesArray();
+    list.forEach(n=>{
+      if((n.kind||"lesson")!=="lesson") return;
+      if(!hasAnyLessonField(n)) return;
+      const pk = n.pairKey ? norm(n.pairKey) : pairKeyFromLessonKey(n.lessonKey||"");
+      if(pk && pk !== "||") set.add(pk);
+    });
+    return set;
+  }
+
+  function applyLessonDots(){
+    const body = document.getElementById("tblBody");
+    if(!body) return;
+    const rows = Array.from(body.querySelectorAll(".tblRow"));
+    if(!rows.length) return;
+
+    const set = notePairSet();
+
+    // temizle
+    rows.forEach(r => {
+      r.classList.remove("hasLessonNote");
+      const oldBtn = r.querySelector(".noteDotBtn");
+      if(oldBtn) oldBtn.remove();
+    });
+
+    // her ders-ciftinin ilk gorunumu (gun icinde) isaretleniyor
+    const seen = new Set();
+    rows.forEach(r=>{
+      const cls = norm(r.querySelector(".tblCls")?.textContent);
+      const les = norm(r.querySelector(".tblLes")?.textContent);
+      const time = norm(r.querySelector(".tblTime")?.textContent);
+      if(!cls || !les) return;
+      const pk = pairKey(cls, les);
+      if(seen.has(pk)) return;
+      seen.add(pk);
+      if(!set.has(pk)) return;
+
+      r.classList.add("hasLessonNote");
+
+      // Noktaya tiklama ile notlar acilsin (pseudo-element tiklanamaz, bu nedenle buton ekliyoruz)
+      const noCell = r.querySelector(".tblNo");
+      if(!noCell) return;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'noteDotBtn';
+      btn.setAttribute('aria-label','Notlari ac');
+
+      const lessonKey = (cls + "__" + les + "__" + time).replace(/\s+/g,' ');
+      btn.addEventListener('click', (ev)=>{
+        ev.preventDefault();
+        ev.stopPropagation();
+        window.__NM_PREFILL.pairKey = pk;
+        window.__NM_PREFILL.lessonKey = lessonKey;
+        if(typeof window.openNotes === 'function') window.openNotes();
+      });
+      // mobil icin
+      btn.addEventListener('touchstart', (ev)=>{ ev.stopPropagation(); }, {passive:true});
+
+      noCell.appendChild(btn);
+    });
+  }
+
+  window.__NM_PREFILL = window.__NM_PREFILL || { pairKey:"", lessonKey:"" };
+
+  function ensureLongPress(){
+    const body = document.getElementById("tblBody");
+    if(!body || body.__nmLpBound) return;
+    body.__nmLpBound = true;
+
+    let timer=null, start=null, row=null;
+
+    const startFn = (ev)=>{
+      row = ev.target && ev.target.closest ? ev.target.closest(".tblRow") : null;
+      if(!row) return;
+      start = { x:(ev.touches?ev.touches[0].clientX:ev.clientX), y:(ev.touches?ev.touches[0].clientY:ev.clientY) };
+      clearTimeout(timer);
+      timer = setTimeout(()=>{
+        const cls = norm(row.querySelector(".tblCls")?.textContent);
+        const les = norm(row.querySelector(".tblLes")?.textContent);
+        const time = norm(row.querySelector(".tblTime")?.textContent);
+        if(!cls || !les) return;
+        window.__NM_PREFILL.pairKey = pairKey(cls, les);
+        window.__NM_PREFILL.lessonKey = (cls + "__" + les + "__" + time).replace(/\s+/g," ");
+        if(typeof window.openNotes === "function") window.openNotes();
+      }, 350);
+    };
+
+    const moveFn = (ev)=>{
+      if(!start) return;
+      const x=(ev.touches?ev.touches[0].clientX:ev.clientX);
+      const y=(ev.touches?ev.touches[0].clientY:ev.clientY);
+      if(Math.abs(x-start.x)>10 || Math.abs(y-start.y)>10){
+        clearTimeout(timer); timer=null;
+      }
+    };
+
+    const endFn = ()=>{ clearTimeout(timer); timer=null; start=null; row=null; };
+
+    body.addEventListener("touchstart", startFn, {passive:true});
+    body.addEventListener("touchmove", moveFn, {passive:true});
+    body.addEventListener("touchend", endFn, {passive:true});
+    body.addEventListener("touchcancel", endFn, {passive:true});
+
+    body.addEventListener("mousedown", startFn);
+    body.addEventListener("mousemove", moveFn);
+    body.addEventListener("mouseup", endFn);
+    body.addEventListener("mouseleave", endFn);
+  }
+
+  function prefillNotesSelect(){
+    try{
+      const nmLesson = document.getElementById("nmLesson");
+      if(!nmLesson) return;
+      const pk = window.__NM_PREFILL?.pairKey || "";
+      const lk = window.__NM_PREFILL?.lessonKey || "";
+      if(!pk && !lk) return;
+
+      if(lk) nmLesson.value = lk;
+      if(!nmLesson.value && pk){
+        const opts = Array.from(nmLesson.options||[]);
+        const found = opts.find(o => pairKeyFromLessonKey(o.value||"") === pk);
+        if(found) nmLesson.value = found.value;
+      }
+
+      window.__NM_PREFILL.pairKey = "";
+      window.__NM_PREFILL.lessonKey = "";
+    }catch(_){}
+  }
+
+  if(typeof window.openNotes === "function" && !window.__nmOpenWrapped){
+    window.__nmOpenWrapped = true;
+    const origOpen = window.openNotes;
+    window.openNotes = function(){
+      const r = origOpen.apply(this, arguments);
+      setTimeout(prefillNotesSelect, 0);
+      return r;
+    };
+  }
+
+  if(typeof window.renderTable === "function" && !window.__nmRenderWrapped){
+    window.__nmRenderWrapped = true;
+    const origRender = window.renderTable;
+    window.renderTable = function(dayName){
+      const r = origRender.apply(this, arguments);
+      ensureLongPress();
+      applyLessonDots();
+      return r;
+    };
+  }
+
+  if(typeof window.refreshNotlarDot === "function" && !window.__nmRefreshWrapped){
+    window.__nmRefreshWrapped = true;
+    const origRef = window.refreshNotlarDot;
+    window.refreshNotlarDot = function(day){
+      const r = origRef.apply(this, arguments);
+      applyLessonDots();
+      return r;
+    };
+  }
+
+  document.addEventListener("DOMContentLoaded", function(){
+    if (typeof initSettingsFromStorage==="function") initSettingsFromStorage();
+    ensureLongPress();
+    applyLessonDots();
+  });
+})();
+/* ================== /LONG PRESS + DERS NOKTASI ================== */
+</script>
+
+<style>
+/* === FIX28: SINIF-DERS daha sıkı + nokta biraz içeri === */
+.tblRow{
+  grid-template-columns: 32px 58px 1fr 110px !important; /* SINIF daha dar */
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+}
+.tblCls{ padding-right: 2px !important; }
+.tblLes{ padding-left: 2px !important; }
+
+/* Nokta çok az içeri (sağa) */
+.tblNo{ padding-left: 9px !important; }
+.tblRow.hasLessonNote .tblNo::before{
+  left: 2px !important;
+}
+
+.lesson-time {
+  font-size: 0.85em;
+  color: #9aa3ad;
+  white-space: nowrap;
+  text-align: right;
+}
+
+
+/* === FIX13: Sadece YATAYDA görünür yüksekliğe göre sığdır (turuncu şerit dışta kalsın) === */
+:root{ --vh: 1vh; }
+@media (orientation: landscape){
+  /* appBorder zaten turuncu çerçeve; yüksekliği gerçek görünür alana göre ayarla */
+  .appBorder{
+    height: calc((var(--vh) * 100) - 24px);
+    min-height: calc((var(--vh) * 100) - 24px);
+  }
+  /* Haftalık görünüm içeride taşmasın */
+  #weeklyView .pad{
+    max-height: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  #weeklyView .weeklyTableWrapper{
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  #weeklyGrid{ min-height: 0; }
+}
+
+</style>
+<style>
+/* === FIX30: Noktayi rakamdan uzaklastir (biraz daha sola) === */
+.tblNo{ padding-left: 12px !important; } /* rakam biraz saga */
+.tblRow.hasLessonNote .tblNo::before{
+  left: -4px !important;               /* nokta daha sola (rakamdan uzak) */
+}
+
+.lesson-time {
+  font-size: 0.85em;
+  color: #9aa3ad;
+  white-space: nowrap;
+  text-align: right;
+}
+
+
+/* Noktaya tiklanabilir alan (pseudo-element tiklanamaz) */
+.tblNo{ position: relative; }
+.noteDotBtn{
+  position: absolute;
+  left: -14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.noteDotBtn:focus{ outline: none; }
+.noteDotBtn:active{ transform: translateY(-50%) scale(0.96); }
+
+/* === FIX13: Sadece YATAYDA görünür yüksekliğe göre sığdır (turuncu şerit dışta kalsın) === */
+:root{ --vh: 1vh; }
+@media (orientation: landscape){
+  /* appBorder zaten turuncu çerçeve; yüksekliği gerçek görünür alana göre ayarla */
+  .appBorder{
+    height: calc((var(--vh) * 100) - 24px);
+    min-height: calc((var(--vh) * 100) - 24px);
+  }
+  /* Haftalık görünüm içeride taşmasın */
+  #weeklyView .pad{
+    max-height: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  #weeklyView .weeklyTableWrapper{
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  #weeklyGrid{ min-height: 0; }
+}
+
+</style>
+
+
+<script>
+/* === FIX13: sadece landscape'te --vh güncelle === */
+(function(){
+  function setVH(){
+    try{
+      if (window.matchMedia && window.matchMedia("(orientation: landscape)").matches){
+        var vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', vh + 'px');
+      }
+    }catch(e){}
+  }
+  window.addEventListener('resize', setVH, {passive:true});
+  window.addEventListener('orientationchange', function(){ setTimeout(setVH, 250); }, {passive:true});
+  setVH();
+})();
+
+/* === Font size: sadece ALT TABLO ölçeklensin (13/16/19) === */
+(function(){
+  const sel = document.getElementById('fsSelect');
+  if(!sel) return;
+
+  function parsePx(v){
+    if(typeof v !== 'string') return 16;
+    const n = parseInt(v.replace('px',''), 10);
+    return Number.isFinite(n) ? n : 16;
+  }
+  function apply(px){
+    const base = 16; // ORTA referans
+    const scale = px / base;
+    document.documentElement.style.setProperty('--fsScale', String(scale.toFixed(3)));
+    try{ localStorage.setItem('dt_font_px', String(px)); }catch(e){}
+  }
+
+  // load
+  const saved = parsePx(localStorage.getItem('dt_font_px') || sel.value || '16');
+  apply(saved);
+  sel.value = String(saved);
+
+  sel.addEventListener('change', ()=> apply(parsePx(sel.value)));
+})();
 
 </script>
 </body>
