@@ -905,6 +905,51 @@ body.light .notlar-modal .close:hover {
   }
 }
 
+
+
+/* === Ders rengi hızlı palet (2 satır, çerçeve içinde) === */
+.crsPalette{
+  position: fixed;
+  z-index: 9999;
+  display: none;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 14px;
+  background: rgba(10,14,22,.92);
+  border: 1px solid rgba(255,255,255,.18);
+  box-shadow: 0 18px 48px rgba(0,0,0,.55);
+  backdrop-filter: blur(10px);
+
+  max-width: calc(100% - 24px); /* turuncu çerçeve içinde kal */
+  width: 220px;                 /* bilinçli dar: 2 satıra kır */
+  flex-wrap: wrap;
+  row-gap: 8px;
+  column-gap: 8px;
+}
+.crsPalette .sw{
+  width: 26px; height: 26px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.22);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.25);
+  cursor: pointer;
+}
+.crsPalette .more{
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.22);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.92);
+  font-weight: 900;
+  cursor: pointer;
+  user-select: none;
+}
+.crsPalette .more:active{ transform: scale(.98); }
+
+
+/* Ders adı varsayılan beyaz (renk sadece vurgu olarak) */
+.tblLes{ color: rgba(255,255,255,.92) !important; }
+
 </style>
 <style>
 /* === PORTRAIT HORIZONTAL SCROLL FIX === */
@@ -1412,6 +1457,34 @@ html.timefmt-range .tblRow{
 
 </style>
 
+<style>
+
+/* === FIX: SINIF/ŞUBE her yerde beyaz kalsın (ders rengi uygulanmasın) === */
+.tblCls{ color: rgba(255,255,255,.88) !important; }
+
+/* Ayarlar: sınıf chip'leri beyaz */
+#classChipList .chip,
+#classChipList .classChip,
+#classChipList .tag,
+#classChipList [data-type="class"]{
+  color: rgba(255,255,255,.92) !important;
+  background: rgba(255,255,255,.06) !important;
+  border-color: rgba(255,255,255,.14) !important;
+}
+
+/* Haftalık: sınıf/şube beyaz */
+#weeklyGrid .wCls,
+#weeklyGrid .cls,
+#weeklyGrid .cellCls,
+#weeklyGrid .wkCls,
+#weeklyGrid [data-part="cls"]{
+  color: rgba(255,255,255,.92) !important;
+  background: transparent !important;
+  border-color: rgba(255,255,255,.14) !important;
+  box-shadow: none !important;
+}
+
+</style>
 </head>
 <body>
 <div class="appFrame">
@@ -2219,27 +2292,75 @@ const calculateTimes = () => {
       };
     });
 
-    // Renk değiştirme
+    // Renk değiştirme (hızlı palet + turuncu)
     const colorEdit = document.getElementById('courseColorEdit');
-    host.querySelectorAll('[data-crs-color]').forEach(sp=>{
-      sp.onclick = () => {
-        const name = sp.getAttribute('data-crs-color');
-        if(!name || !colorEdit) return;
-        const current = (courseColors && courseColors[name]) ? courseColors[name] : "#7aa7ff";
-        colorEdit.value = current;
-        colorEdit.onchange = () => {
-          const v = colorEdit.value;
-          courseColors[name] = v;
+    const pal = document.getElementById('crsPalette');
+
+    const PRESET = ['#ff7a00','#7aa7ff','#7bdcb5','#ffd166','#ef798a','#cdb4db','#90dbf4','#a0c4ff'];
+    function hidePal(){ if(pal){ pal.style.display='none'; pal.setAttribute('aria-hidden','true'); pal.innerHTML=''; } }
+    function showPal(x,y,name){
+      if(!pal) return;
+      pal.innerHTML = PRESET.map(c=>`<div class="sw" data-pal="${c}" title="${c}" style="background:${c}"></div>`).join('')
+        + `<div class="more" data-more="1" title="Özel renk">🎨</div>`;
+      pal.style.left = Math.max(8, Math.min(x, window.innerWidth-260)) + 'px';
+      pal.style.top  = Math.max(8, Math.min(y, window.innerHeight-80)) + 'px';
+      pal.style.display='flex';
+      pal.setAttribute('aria-hidden','false');
+
+      pal.onclick = (ev)=>{
+        const t = ev.target;
+        if(!(t instanceof HTMLElement)) return;
+        const c = t.getAttribute('data-pal');
+        if(c){
+          courseColors[name] = c;
           saveCourseColors(courseColors);
+          hidePal();
           renderCourseChips();
           refreshSelects();
           try{ const d=ACTIVE_DAYS[activeRealIndex]||ACTIVE_DAYS[0]; renderTable(d);}catch(_){}
-        };
-        // aç
-        colorEdit.click();
+          return;
+        }
+        if(t.getAttribute('data-more') && colorEdit){
+          const cur = (courseColors && courseColors[name]) ? courseColors[name] : "#ff7a00";
+          colorEdit.value = cur;
+          colorEdit.onchange = () => {
+            const v = colorEdit.value;
+            courseColors[name] = v;
+            saveCourseColors(courseColors);
+            hidePal();
+            renderCourseChips();
+            refreshSelects();
+            try{ const d=ACTIVE_DAYS[activeRealIndex]||ACTIVE_DAYS[0]; renderTable(d);}catch(_){}
+          };
+          colorEdit.click();
+        }
+      };
+    }
+
+    // dışarı tıklayınca kapat
+    setTimeout(()=>{
+      document.addEventListener('click', (e)=>{
+        if(!pal || pal.style.display==='none') return;
+        const el = e.target;
+        if(el && pal.contains(el)) return;
+        if(el && el instanceof HTMLElement && el.hasAttribute('data-crs-color')) return;
+        hidePal();
+      }, {capture:true});
+      window.addEventListener('scroll', hidePal, {passive:true});
+      window.addEventListener('resize', hidePal, {passive:true});
+    },0);
+
+    host.querySelectorAll('[data-crs-color]').forEach(sp=>{
+      sp.onclick = (ev) => {
+        const name = sp.getAttribute('data-crs-color');
+        if(!name) return;
+        const r = sp.getBoundingClientRect();
+        showPal(r.left, r.bottom + 8, name);
+        ev.stopPropagation();
       };
     });
   };
+
 
   // Ekle butonları
   const addClassBtn = document.getElementById('addClassBtn');
@@ -3735,15 +3856,26 @@ btnWeekly.addEventListener("click", ()=>{ location.href = "haftalik.html"; });
   setVH();
 })();
 
-/* === Font size: sadece ALT TABLO ölçeklensin (13/16/19) === */
+/* === Font size: sadece ALT TABLO + AYARLAR ölçeklensin (13/16/19) === */
 (function(){
   const sel = document.getElementById('fsSelect');
   if(!sel) return;
+
+  const OPTIONS = [13,16,19];
 
   function parsePx(v){
     if(typeof v !== 'string') return 16;
     const n = parseInt(v.replace('px',''), 10);
     return Number.isFinite(n) ? n : 16;
+  }
+  function snap(px){
+    // en yakına yuvarla (13/16/19)
+    let best = OPTIONS[0], bestD = Math.abs(px-OPTIONS[0]);
+    for(const o of OPTIONS){
+      const d = Math.abs(px-o);
+      if(d < bestD){ best = o; bestD = d; }
+    }
+    return best;
   }
   function apply(px){
     const base = 16; // ORTA referans
@@ -3751,15 +3883,78 @@ btnWeekly.addEventListener("click", ()=>{ location.href = "haftalik.html"; });
     document.documentElement.style.setProperty('--fsScale', String(scale.toFixed(3)));
     try{ localStorage.setItem('dt_font_px', String(px)); }catch(e){}
   }
+  function syncUI(){
+    const savedRaw = (function(){
+      try{ return localStorage.getItem('dt_font_px') || sel.value || '16'; }catch(e){ return sel.value || '16'; }
+    })();
+    const px = snap(parsePx(savedRaw));
+    apply(px);
+    // select boş kalmasın
+    sel.value = String(px);
+    // eğer option yoksa (olmaz ama güvenlik)
+    if(sel.value !== String(px)){
+      const opt = document.createElement('option');
+      opt.value = String(px);
+      opt.textContent = (px===13?'KÜÇÜK':px===16?'ORTA':'BÜYÜK');
+      sel.appendChild(opt);
+      sel.value = String(px);
+    }
+  }
 
-  // load
-  const saved = parsePx(localStorage.getItem('dt_font_px') || sel.value || '16');
-  apply(saved);
-  sel.value = String(saved);
+  // ilk açılış
+  syncUI();
 
-  sel.addEventListener('change', ()=> apply(parsePx(sel.value)));
+  sel.addEventListener('change', ()=>{
+    const px = snap(parsePx(sel.value));
+    apply(px);
+    sel.value = String(px);
+  });
+
+  // Ayarlar ekranı açılınca da seçili değeri göster
+  const _openSettings = window.openSettingsView;
+  if(typeof _openSettings === 'function'){
+    window.openSettingsView = function(){
+      const r = _openSettings.apply(this, arguments);
+      syncUI();
+      return r;
+    };
+  }else{
+    // bazı sürümlerde settings butonu click ile view değişiyor; güvenlik için her click'te de sync
+    document.addEventListener('click', (e)=>{
+      const t = e.target;
+      if(!(t instanceof HTMLElement)) return;
+      if(t.id === 'btnSettings' || t.closest('#btnSettings') || t.matches('[data-open-settings]')){
+        setTimeout(syncUI, 0);
+      }
+    }, true);
+  }
+})();
+/* === FIX: Ders rengi SINIF/ŞUBE'ye uygulanmasın (runtime) === */
+(function(){
+  function enforceClsWhite(root){
+    if(!root) return;
+    const nodes = root.querySelectorAll('.wCls,.cls,.cellCls,.wkCls,[data-part="cls"]');
+    nodes.forEach(n=>{
+      n.style.color = 'rgba(255,255,255,.92)';
+      n.style.background = 'transparent';
+    });
+  }
+  window.addEventListener('load', ()=> enforceClsWhite(document.getElementById('weeklyGrid')));
+
+  const fn = window.renderWeeklyGrid || window.renderGrid;
+  const fnName = window.renderWeeklyGrid ? 'renderWeeklyGrid' : (window.renderGrid ? 'renderGrid' : null);
+  if(fnName && typeof fn === 'function'){
+    const orig = window[fnName];
+    window[fnName] = function(){
+      const res = orig.apply(this, arguments);
+      enforceClsWhite(document.getElementById('weeklyGrid'));
+      return res;
+    };
+  }
 })();
 
 </script>
+
+<div id="crsPalette" class="crsPalette" aria-hidden="true"></div>
 </body>
 </html>
