@@ -1,6 +1,7 @@
 
 
 
+
 <!DOCTYPE html>
 
 <html lang="tr">
@@ -25,7 +26,7 @@
       --orange:#ff7a00;
       --line: rgba(255,255,255,.10);
       --shadow: 0 22px 70px rgba(0,0,0,.55);
-      --fs-base: 14px;
+      --fs-base: 16px;
     }
     
 
@@ -1958,13 +1959,6 @@ settingsBackBtn.onclick = hideSettings;
 
 document.getElementById("themeToggle").onclick = () => {
 };
-document.getElementById("fsSelect").onchange = (e)=>{
-  const v = e.target.value;
-  document.documentElement.style.setProperty('--fs-base', v);
-  localStorage.setItem("dt_fs_base", v);
-  applyGlobalTextSizetSize(v);
-};
-
 /* Settings logic (uyarlanmış) */
 (function(){
   const progBody = document.getElementById('progBody');
@@ -2479,26 +2473,7 @@ function applyGlobalTextSizetSize(fsPx){
 }
 
 function initSettingsFromStorage(){
-  // tema + font boyutu
-
-  let fs = localStorage.getItem("dt_fs_base");
-if(!fs) fs = "14px";
-try{ if(fs && fs.trim().startsWith("\"")) fs = JSON.parse(fs); }catch(e){}
-
-// Eski kayıtlardan gelen değerleri güvenli aralığa yuvarla (12 / 14 / 16 / 18)
-const fsp = parseFloat(String(fs).replace(/[^0-9.]/g, "")) || 14;
-if(fsp <= 12) fs = "12px";
-else if(fsp >= 18) fs = "18px";
-else if(fsp >= 16) fs = "16px";
-else fs = "14px";
-
-localStorage.setItem("dt_fs_base", fs);
-document.documentElement.style.setProperty("--fs-base", fs);
-const fsSel = document.getElementById("fsSelect");
-if(fsSel) fsSel.value = fs;
-
-// tüm sayfalara uygula
-applyGlobalTextSizetSize(fs);
+  // tema + diğer ayarlar (font boyutu 13/16/19 sistemiyle yönetiliyor)
 
   // aktif günleri UI'ya yansıt
   const savedDays = loadJSON(LS_ACTIVE_DAYS_KEY, [...ALL_DAYS]);
